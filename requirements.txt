@@ -1,0 +1,7 @@
+asgiref==3.4.1
+Django==3.2.5
+djangorestframework==3.12.4
+pytz==2021.1
+six==1.16.0
+sqlparse==0.4.1
+transliterate==1.10.2
