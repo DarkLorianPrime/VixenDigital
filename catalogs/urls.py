@@ -1,11 +1,12 @@
 from django.urls import path
 
-from catalogs.views import Start_Page, Codes, Sub_Category, Products
+from catalogs.views import Get_Codes, Sub_Category, Products, First_Page
 
 app_name = 'catalogs'
 urlpatterns = [
-    path('', Start_Page.as_view(), name='Start_Page'),
-    path('codes', Codes.as_view(), name='all_codes'),
-    path('<str:mainCategory>', Sub_Category.as_view(), name='Sub_Categories'),
-    path('<str:mainCategory>/<str:subCategory>', Products.as_view(), name='products')
+    # path('', Start_Page.as_view(), name='Start_Page'),
+    path('', First_Page.as_view({'get': 'list', 'post': 'create'}), name='Start_Page'),
+    path('codes', Get_Codes.as_view({'get': 'list', 'post': 'list'}), name='all_codes'),
+    path('<str:mainCategory>/', Sub_Category.as_view({'get': 'list', 'post': 'create'}), name='Sub_Categories'),
+    path('<str:mainCategory>/<str:subCategory>/', Products.as_view({'get': 'list'}), name='products')
 ]

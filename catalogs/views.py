@@ -1,69 +1,67 @@
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from transliterate import translit
-from catalogs.models import Main_Categories, Sub_Categories
+from rest_framework.viewsets import ViewSet
+
+from Serializers.Exceptions import APIException202
+from catalogs.models import Main_Categories
+from extras.codes_list import codelist
 from extras.token_checker import token_checker
-
-errors = [{'code': '0', 'error': 'already exists'}]
-
-
-class Start_Page(APIView):
-    def get(self, request):
-        if not Main_Categories.objects.exists():
-            return Response({'response': {'code': '4', 'error': 'anything not found'}}, status=400)
-        return Response({"response": {'code': '2', 'object': Main_Categories.objects.values_list('slug', 'name')}},
-                        status=200)
-
-    @token_checker
-    def post(self, request):
-        new_category = request.GET['name'].capitalize()
-        if Main_Categories.objects.filter(name=new_category).exists():
-            return Response({'response': errors[0]}, status=400)
-        slug_rep = translit(new_category, 'ru', reversed=True).replace("'", '').replace(" ", '_').lower()
-        Main_Categories.objects.create(name=new_category, slug=slug_rep)
-        return Response({'response': {'code': '1', 'object': f'{new_category}'}}, status=200)
+from Serializers.serializers import Category_Serializer, Sub_Category_Serializer, Get_Category_Serializer, \
+    Get_SubCategory_Serializer
 
 
-class Codes(APIView):
-    code_list = [{'description': 'Возвращает сообщение о том, что объект уже зарегистрирован в базе', 'code': '0'},
-                 {'description': 'Возвращает сообщение о том, что операция прошла успешно. POST методы', 'code': '1'},
-                 {'description': 'Возвращает сообщение о том, что операция прошла успешно. GET методы', 'code': '2'},
-                 {'description': 'Возвращает сообщение о том, что токен неверный', 'code': '3'},
-                 {'description': 'Возвращает сообщение о том, что объектов в базе нет', 'code': '4'},
-                 {'description': 'Возвращает сообщение о том, что данного объекта в базе нет', 'code': '5'}]
-
-    def get(self, request):
-        return Response({'response': self.code_list, 'code': '2'}, status=200)
-
-    def post(self, request):
-        return Response({'response': self.code_list, 'code': '2'}, status=200)
-
-
-class Sub_Category(APIView):
-    def get(self, request, mainCategory):
-        all_categories = Sub_Categories.objects.filter(
-            main_category=Main_Categories.objects.filter(slug=mainCategory).first())
-        if not all_categories.exists():
-            return Response({'response': {'code': '4', 'error': f'Subcategories not found'}}, status=400)
-        return Response({'response': {'code': '2', 'objects': Main_Categories.objects.values_list('slug', 'name')}})
+class First_Page(ViewSet):
+    def list(self, request):
+        Category_force = Main_Categories.objects.filter(category=None)
+        data = {'object': Category_force.values('slug', 'name'), 'count': Category_force.count()}
+        serialize_data = Get_Category_Serializer(data=data)
+        serialize_data.validate(data)
+        #raise APIException202({'response': {'code': '6', 'errors': serialize_data.errors}})
+        return Response(serialize_data.validated_data)
 
     @token_checker
-    def post(self, request, mainCategory):
-        new_category = request.GET['name'].capitalize()
-        main_category_model = Main_Categories.objects.filter(slug=mainCategory).first()
-        all_categories = Sub_Categories.objects.filter(main_category=Main_Categories.objects.filter(slug=mainCategory).first())
-        if all_categories.exists():
-            return Response({'response': errors[0]}, status=400)
-        slug_rep = translit(new_category, 'ru', reversed=True).replace("'", '').replace(" ", '_')
-        Sub_Categories.objects.create(name=new_category, main_category=main_category_model, slug=slug_rep)
-        return Response({'response': {'code': '1', 'object': new_category}}, status=200)
+    def create(self, request):
+        serialized = Category_Serializer(data=request.GET.dict())
+        serialized.is_valid(True)
+        # if not serialized.is_valid():
+        #     raise APIException202({'response': {'code': '6', 'errors': serialized.errors}})
+        comm = serialized.save()
+        return Response({'response': {'code': '1', 'object': f'{comm}'}})
 
 
-class Products(APIView):
+class Get_Codes(ViewSet):
+    def list(self, request):
+        return Response({'response': codelist(), 'code': '2'})
+
+
+class Sub_Category(ViewSet):
+    def list(self, request, mainCategory):
+        all_categories = Main_Categories.objects.filter(category=Main_Categories.objects.filter(slug=mainCategory).first())
+        data = {'object': all_categories.values('slug', 'name'), 'count': all_categories.count()}
+        serialized = Get_SubCategory_Serializer(data)
+        if not serialized.is_valid():
+            raise APIException202({'response': {'code': '6', 'errors': serialized.errors}})
+        return Response(serialized)
+
+    @token_checker
+    def create(self, request, mainCategory):
+        request_data = request.GET.dict()
+        request_data['category'] = mainCategory
+        serialized = Sub_Category_Serializer(data=request_data)
+        if not serialized.is_valid():
+            return Response({'response': {'code': '6', 'errors': serialized.errors}})
+        returned = serialized.save()
+        return Response({'response': {'code': '1', 'object': returned.name}})
+
+
+class Products(ViewSet):
     def get(self, request, mainCategory, subCategory):
-        main_category = Main_Categories.objects.filter(name=mainCategory).first()
-        product_in_subcategory = Sub_Categories.objects.filter(name=subCategory, main_category=main_category)
-        if not product_in_subcategory.exists():
-            return Response({'response': {'code': '5', 'error': f'Subcategory not found'}}, status=400)
+        all_categories = Main_Categories.objects.filter(slug=subCategory,
+                                                        category=Main_Categories.objects.filter(
+                                                            slug=mainCategory).first())
+        if not all_categories.exists():
+            return Response({'response': {'code': '4', 'errors': 'anything not found'}})
+        return Response({'lox': 'chmo'})
 
 # 13a_6gQ3ABi9GrZT59yMLw
