@@ -17,9 +17,14 @@ class Access_Token(models.Model):
         return self.token
 
 
+class Features(models.Model):
+    category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='Catalog_Features')
+    name = models.CharField(max_length=200)
+
+
 class Product(models.Model):
-    sub_category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='product_category')
-    features = models.TextField()
+    category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='product_category')
+    features = models.ManyToManyField(Features)
     description = models.TextField()
     name = models.CharField(max_length=100)
     slug = models.SlugField()
