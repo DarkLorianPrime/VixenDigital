@@ -6,7 +6,7 @@ from Serializers.Exceptions import BadRequest
 from catalogs.models import Main_Categories, Product, Features
 from extras.codes_list import codelist
 from extras.token_checker import token_checker
-from Serializers.serializers import Category_Serializer, Sub_Category_Serializer, Get_Category_Serializer, \
+from Serializers import Category_Serializer, Sub_Category_Serializer, Get_Category_Serializer, \
     Get_SubCategory_Serializer, Products_Serializer, Get_Products_Serializer, Get_Features_Serializer, \
     Features_Serializer
 
