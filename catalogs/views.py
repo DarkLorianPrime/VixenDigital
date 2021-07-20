@@ -10,17 +10,7 @@ from extras.serialize_extra import translit
 from extras.token_checker import token_checker
 
 
-class FirstPage(ModelViewSet):
-    serializer_class = CategorySerializer
-
-    # queryset = Main_Categories.objects.all()
-
-    @action(['get'], detail=True)
-    def details(self, request, pk=None):
-        print(pk, request)
-
-
-class SubCategory(ModelViewSet):
+class CategoriesViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     model = Main_Categories
 
