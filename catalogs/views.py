@@ -18,7 +18,10 @@ class CategoriesViewSet(ModelViewSet):
     def get_queryset(self):
         pk = self.kwargs.get('pk')
         if pk is None:
-            return Main_Categories.objects.filter(category=None)
+            returned = Main_Categories.objects.filter(category=None)
+            if not returned:
+                raise APIException202(['Category Not Found'])
+            return returned
         returned = Main_Categories.objects.filter(slug=pk).first()
         if returned is None:
             raise APIException202(['Category Not Found'])
@@ -35,7 +38,7 @@ class CategoriesViewSet(ModelViewSet):
         returned = self.get_serializer(data={'name': parameters.get('name'), 'category': self.get_queryset().id})
         returned.is_valid(True)
         returned.save()
-        return Response(returned.validated_data['name'])
+        return Response([{'name': returned.validated_data['name']}])
 
 
 class Products(ViewSet):
