@@ -4,7 +4,7 @@ from django.db import models
 class Main_Categories(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
-    category = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
+    category = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name

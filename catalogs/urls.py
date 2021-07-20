@@ -1,14 +1,18 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
-from catalogs.models import Features
-from catalogs.views import Get_Codes, Sub_Category, Products, First_Page, Features_ViewSet
+from catalogs.views import SubCategory, Products, FirstPage, FeaturesViewSet
 
 app_name = 'catalogs'
+router = DefaultRouter()
+#router.register(r'', FirstPage, basename='Main_Categories')
+# router.register(r'{main_category}', SubCategory, basename='SubCategories')
+router.register(r'', SubCategory, basename='Sub_Categories')
+
 urlpatterns = [
-    # path('', Start_Page.as_view(), name='Start_Page'),
-    path('', First_Page.as_view({'get': 'list', 'post': 'create'}), name='Start_Page'),
-    path('codes', Get_Codes.as_view({'get': 'list', 'post': 'list'}), name='all_codes'),
-    path('<str:mainCategory>/', Sub_Category.as_view({'get': 'list', 'post': 'create'}), name='Sub_Categories'),
-    path('<str:mainCategory>/<str:subCategory>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
-    path('<str:mainCategory>/<str:subCategory>/features/', Features_ViewSet.as_view({'get': 'list', 'post': 'create'}))
+    # path('<str:mainCategory>/', FirstPage.as_view(), name='Sub_Categories')
+    # path('<str:mainCategory>/', SubCategory.as_view({'get': 'get'}), name='Sub_Categories'),
+    # path('<str:mainCategory>/<str:subCategory>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
+    # path('<str:mainCategory>/<str:subCategory>/features/', FeaturesViewSet.as_view({'get': 'list', 'post': 'create'})),
 ]
+urlpatterns += router.urls
