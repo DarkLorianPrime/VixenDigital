@@ -47,6 +47,7 @@ class CategorySerializer(ModelSerializer):
         fields = ['name', 'category']
 
     def create(self, validated_data):
+        print(validated_data['name'])
         validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)
         if validated_data.get('category') is None:
             is_exist_category(validated_data['name'])

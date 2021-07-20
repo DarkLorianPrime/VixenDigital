@@ -1,8 +1,9 @@
+from django.shortcuts import get_object_or_404, _get_queryset
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from catalogs.Exceptions import BadRequest
+from catalogs.Exceptions import BadRequest, APIException202
 from catalogs.models import Main_Categories, Product, Features
 from catalogs.serializers import CategorySerializer, ProductsSerializer, GETProductsSerializer, GETFeaturesSerializer, \
     FeaturesSerializer
@@ -18,15 +19,20 @@ class CategoriesViewSet(ModelViewSet):
         pk = self.kwargs.get('pk')
         if pk is None:
             return Main_Categories.objects.filter(category=None)
-        return Main_Categories.objects.filter(slug=pk).first()
+        returned = Main_Categories.objects.filter(slug=pk).first()
+        if returned is None:
+            raise APIException202(['Category Not Found'])
+        return returned
 
     def retrieve(self, request, *args, **kwargs):
-        return Response(Main_Categories.objects.filter(category=self.get_queryset()).values('name'))
+        returned = Main_Categories.objects.filter(category=self.get_queryset()).values('name')
+        if not returned:
+            return Response(['Not found products in this category'])
+        return Response(returned)
 
     def post(self, request, *args, **kwargs):
         parameters = request.POST.dict()
-        returned = self.get_serializer(data={'name': parameters.get('name'),
-                                             'category': self.get_queryset().id})
+        returned = self.get_serializer(data={'name': parameters.get('name'), 'category': self.get_queryset().id})
         returned.is_valid(True)
         returned.save()
         return Response(returned.validated_data['name'])
