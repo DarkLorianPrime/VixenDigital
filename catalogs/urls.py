@@ -8,7 +8,7 @@ router = DefaultRouter()
 router.register(r'', CategoriesViewSet, basename='Sub_Categories')
 
 urlpatterns = [
-    # path('<str:mainCategory>/<str:subCategory>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
-    # path('<str:mainCategory>/<str:subCategory>/features/', FeaturesViewSet.as_view({'get': 'list', 'post': 'create'})),
+    path('<str:globalcategory>/<str:category>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
+    path('<str:mainCategory>/<str:subCategory>/features/', FeaturesViewSet.as_view({'get': 'list', 'post': 'create'})),
 ]
 urlpatterns += router.urls
