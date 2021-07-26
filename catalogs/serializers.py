@@ -56,7 +56,7 @@ class FeaturesSerializer(Serializer):
     category = serializers.SlugField()
 
     def create(self, validated_data):
-        data = Main_Categories.objects.filter(slug=validated_data['category']).first()
+        data = Main_Categories.objects.get(slug=validated_data['category'])
         validated_data['category'] = data
         return Features.objects.create(**validated_data)
 
