@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from catalogs.Exceptions import APIException202
+from extras.Exceptions import APIException202
 from catalogs.models import Main_Categories, Product, Features
 from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
 
@@ -79,10 +79,14 @@ class Products(ViewSet):
             category, in which we are looking for a product
         :return: List of products
         """
-        main_category = Main_Categories.objects.get(slug=globalcategory)
-        give_category = Main_Categories.objects.get(slug=category, category=main_category)
-        products = Product.objects.filter(category=give_category).values()
-        return Response([{products}])
+        main_category = Main_Categories.objects.get(slug=globalcategory, category=None)
+        give_category = Main_Categories.objects.filter(slug=category, category=main_category).first()
+        products = Product.objects.filter(category=give_category)
+        if give_category is None:
+            return Response([{'Данная категория не найдена.'}])
+        if products.count() <= 0:
+            return Response([{f'Продукция {give_category} не найдена.'}])
+        return Response([{products.values()}])
 
     def create(self, request, globalcategory, category):
         """
@@ -99,7 +103,7 @@ class Products(ViewSet):
             Name of creating product.
         :param: category : model.id
             An unspecified parameter.
-        :param: features : str
+        :param: (Many) features : many args
             Features from the features list.
         :param: description : str
             Information about this product
@@ -112,17 +116,26 @@ class Products(ViewSet):
         :return:
             Response with name of created product
         """
+        exclude_list = ['name', 'description', 'price', 'stock']
+        product_features = {}
         product_information = request.POST.dict()
-        main_category = Main_Categories.objects.get(slug=globalcategory)
-        product_information['category'] = Main_Categories.objects.get(slug=category, category=main_category).id
-        features = product_information.get('features')
-        features_get = features.split(', ') if features is not None else []
-        features_list = Features.objects.filter(name__in=features_get).values_list('id', flat=True)
+        main_category = Main_Categories.objects.get(slug=globalcategory, category=None)
+        exist_category = Main_Categories.objects.get(slug=category, category=main_category).id
+        product_information['category'] = exist_category
+        need_features = list(Features.objects.filter(category=exist_category, required=True).values_list('name', flat=True))
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(True)
+        for k, v in product_information.items():
+            if k in exclude_list:
+                continue
+            if k in need_features:
+                need_features.remove(k)
+            product_features[k] = v
+        if len(need_features) > 0:
+            return Response(['Ты не указал обязательные параметры', need_features])
+        already_have = Features.objects.filter(name__in=product_features.keys())
+        new_product.instance.features.add(*already_have)
         new_product.save()
-        for one_features in features_list:
-            new_product.instance.features.add(one_features)
         return Response({'name': [new_product.validated_data['name']]})
 
 
@@ -142,7 +155,7 @@ class FeaturesViewSet(ViewSet):
             category, in which we are looking for a product
         :return: List of features of the specified products
         """
-        main_category = Main_Categories.objects.get(slug=mainCategory)
+        main_category = Main_Categories.objects.get(slug=mainCategory, category=None)
         category = Main_Categories.objects.get(slug=subCategory, category=main_category)
         all_features = Features.objects.filter(category=category)
         return Response(all_features.values('name'))
@@ -160,11 +173,13 @@ class FeaturesViewSet(ViewSet):
         POST data (Parameters):
         :param: name : str
             Name of creating product.
+        :param: required : bool
         :return:
             Response with name of created feature
         """
         request_data = request.POST.dict()
         request_data['category'] = subCategory
+        request_data['catalog'] = mainCategory
         serialized = FeaturesSerializer(data=request_data)
         serialized.is_valid(True)
         serialized.save()

@@ -20,6 +20,10 @@ class Access_Token(models.Model):
 class Features(models.Model):
     category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='Catalog_Features')
     name = models.CharField(max_length=200)
+    required = models.BooleanField()
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):

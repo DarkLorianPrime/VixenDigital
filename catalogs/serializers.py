@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import Serializer, ModelSerializer
 
-from catalogs.models import Main_Categories, Product, Features, Access_Token
-from catalogs.Exceptions import APIException202
+from catalogs.models import Main_Categories, Product, Features
+from extras.Exceptions import APIException202
 from extras.serialize_extra import translit
-from extras.token_checker import token_checker
 
 
 def is_exist_category(value):
@@ -53,10 +52,13 @@ class ProductsSerializer(ModelSerializer):
 
 class FeaturesSerializer(Serializer):
     name = serializers.CharField()
+    catalog = serializers.SlugField()
     category = serializers.SlugField()
+    required = serializers.BooleanField()
 
     def create(self, validated_data):
-        data = Main_Categories.objects.get(slug=validated_data['category'])
+        main_category = Main_Categories.objects.get(slug=validated_data['catalog'], category=None)
+        data = Main_Categories.objects.get(slug=validated_data['category'], category=main_category)
         validated_data['category'] = data
-        return Features.objects.create(**validated_data)
+        return Features.objects.create(**{'name': validated_data['name'], 'category': validated_data['category'], 'required': validated_data['required']})
 
