@@ -2,8 +2,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from extras.Exceptions import APIException202
-from catalogs.models import Main_Categories, Product, Features
-from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
+from catalogs.models import Main_Categories, Product, Features, Features_for_product
+from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer, \
+    Features_for_productSerializer
 
 
 class CategoriesViewSet(ModelViewSet):
@@ -15,11 +16,11 @@ class CategoriesViewSet(ModelViewSet):
         if pk is None:
             returned = Main_Categories.objects.filter(category=None)
             if not returned:
-                raise APIException202([{'Category Not Found'}])
+                raise APIException202()
             return returned
         returned = Main_Categories.objects.filter(slug=pk).first()
         if returned is None:
-            raise APIException202([{'Category Not Found'}])
+            raise APIException202()
         return returned
 
     def retrieve(self, request, *args, **kwargs):
@@ -34,7 +35,7 @@ class CategoriesViewSet(ModelViewSet):
         """
         returned = Main_Categories.objects.filter(category=self.get_queryset()).values('name')
         if not returned:
-            return Response([{'Not found categories in this catalog'}])
+            return Response()
         return Response(returned)
 
     def post(self, request, *args, **kwargs):
@@ -83,7 +84,7 @@ class Products(ViewSet):
         give_category = Main_Categories.objects.filter(slug=category, category=main_category).first()
         products = Product.objects.filter(category=give_category)
         if give_category is None:
-            return Response([{'Данная категория не найдена.'}])
+            return Response([])
         if products.count() <= 0:
             return Response([{f'Продукция {give_category} не найдена.'}])
         return Response([{products.values()}])
@@ -116,27 +117,32 @@ class Products(ViewSet):
         :return:
             Response with name of created product
         """
-        exclude_list = ['name', 'description', 'price', 'stock']
-        product_features = {}
+        exclude_list = ['name', 'description', 'price', 'stock', 'category']
+        data = []
         product_information = request.POST.dict()
         main_category = Main_Categories.objects.get(slug=globalcategory, category=None)
         exist_category = Main_Categories.objects.get(slug=category, category=main_category).id
         product_information['category'] = exist_category
-        need_features = list(Features.objects.filter(category=exist_category, required=True).values_list('name', flat=True))
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(True)
+        new_product.save()
+        need_features = list(Features.objects.filter(category=exist_category, required=True).values_list('id', flat=True))
         for k, v in product_information.items():
             if k in exclude_list:
                 continue
-            if k in need_features:
-                need_features.remove(k)
-            product_features[k] = v
+            if not k.isnumeric():
+                new_product.instance.delete()
+                return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
+            if int(k) in need_features:
+                need_features.remove(int(k))
+            data.append({'features': k, 'value': v, 'product': new_product.instance.id})
         if len(need_features) > 0:
+            new_product.instance.delete()
             return Response(['Ты не указал обязательные параметры', need_features])
-        already_have = Features.objects.filter(name__in=product_features.keys())
-        new_product.instance.features.add(*already_have)
-        new_product.save()
-        return Response({'name': [new_product.validated_data['name']]})
+        d = Features_for_productSerializer(many=True, data=data)
+        d.is_valid(True)
+        d.save()
+        return Response([{'name': new_product.validated_data["name"], 'features': data}])
 
 
 class FeaturesViewSet(ViewSet):
@@ -158,7 +164,7 @@ class FeaturesViewSet(ViewSet):
         main_category = Main_Categories.objects.get(slug=mainCategory, category=None)
         category = Main_Categories.objects.get(slug=subCategory, category=main_category)
         all_features = Features.objects.filter(category=category)
-        return Response(all_features.values('name'))
+        return Response(all_features.values('id', 'name', 'required'))
 
     def create(self, request, mainCategory, subCategory):
         """
@@ -183,7 +189,7 @@ class FeaturesViewSet(ViewSet):
         serialized = FeaturesSerializer(data=request_data)
         serialized.is_valid(True)
         serialized.save()
-        return Response({"name": [serialized.validated_data['name']]})
+        return Response({"name": [serialized.validated_data['name']], "id": serialized.instance.id})
 
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw

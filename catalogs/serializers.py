@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import Serializer, ModelSerializer
 
-from catalogs.models import Main_Categories, Product, Features
+from catalogs.models import Main_Categories, Product, Features, Features_for_product
 from extras.Exceptions import APIException202
 from extras.serialize_extra import translit
 
@@ -48,6 +48,15 @@ class ProductsSerializer(ModelSerializer):
     def create(self, validated_data):
         validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)
         return Product.objects.create(**validated_data)
+
+
+class Features_for_productSerializer(ModelSerializer):
+    class Meta:
+        model = Features_for_product
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return Features_for_product.objects.create(**validated_data)
 
 
 class FeaturesSerializer(Serializer):

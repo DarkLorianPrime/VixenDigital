@@ -28,7 +28,6 @@ class Features(models.Model):
 
 class Product(models.Model):
     category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='product_category')
-    features = models.ManyToManyField(Features)
     description = models.TextField()
     name = models.CharField(max_length=100)
     slug = models.SlugField()
@@ -37,4 +36,13 @@ class Product(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} - {self.slug}'
+
+
+class Features_for_product(models.Model):
+    features = models.ForeignKey(Features, on_delete=models.CASCADE, related_name='featuress')
+    value = models.CharField(max_length=500)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
+
+    def __str__(self):
+        return f'{self.features.name} - {self.value}'
