@@ -15,12 +15,8 @@ class CategoriesViewSet(ModelViewSet):
         pk = self.kwargs.get('pk')
         if pk is None:
             returned = Categories.objects.filter(category=None)
-            if not returned:
-                raise APIException202()
             return returned
         returned = Categories.objects.filter(slug=pk).first()
-        if returned is None:
-            raise APIException202()
         return returned
 
     def retrieve(self, request, *args, **kwargs):
@@ -34,8 +30,6 @@ class CategoriesViewSet(ModelViewSet):
         :return: Will returned all categories located in specified catalog
         """
         returned = Categories.objects.filter(category=self.get_queryset()).values('name')
-        if not returned:
-            return Response()
         return Response(returned)
 
     def post(self, request, *args, **kwargs):
@@ -58,10 +52,10 @@ class CategoriesViewSet(ModelViewSet):
             Response with name of created category
         """
         parameters = request.POST.dict()
-        returned = self.get_serializer(data={'name': parameters.get('name'), 'category': self.get_queryset().id})
+        returned = self.get_serializer(data={**parameters, 'category': self.get_queryset().id})
         returned.is_valid(True)
         returned.save()
-        return Response([{'name': returned.validated_data['name']}])
+        return Response([{returned.validated_data['name']}])
 
 
 class Products(ViewSet):
@@ -84,7 +78,7 @@ class Products(ViewSet):
         give_category = Categories.objects.filter(slug=category, category=main_category).first()
         products = Product.objects.filter(category=give_category)
         if give_category is None:
-            return Response([])
+            return Response([{f'Категория {give_category} не найдена.'}])
         if products.count() <= 0:
             return Response([{f'Продукция {give_category} не найдена.'}])
         return Response([{products.values()}])
@@ -126,22 +120,23 @@ class Products(ViewSet):
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(True)
         new_product.save()
-        need_features = list(Features.objects.filter(category=exist_category, required=True).values_list('id', flat=True))
+        required_features = list(
+            Features.objects.filter(category=exist_category, required=True).values_list('id', flat=True))
         for name_features, value_features in product_information.items():
             if name_features in exclude_list:
                 continue
             if not name_features.isnumeric():
                 new_product.instance.delete()
                 return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
-            if int(name_features) in need_features:
-                need_features.remove(int(name_features))
+            if int(name_features) in required_features:
+                required_features.remove(int(name_features))
             data.append({'features': name_features, 'value': value_features, 'product': new_product.instance.id})
-        if len(need_features) > 0:
+        if len(required_features) > 0:
             new_product.instance.delete()
-            return Response(['Ты не указал обязательные параметры', need_features])
-        d = Features_for_productSerializer(many=True, data=data)
-        d.is_valid(True)
-        d.save()
+            return Response(['Ты не указал обязательные параметры', required_features])
+        serialized = Features_for_productSerializer(many=True, data=data)
+        serialized.is_valid(True)
+        serialized.save()
         return Response([{'name': new_product.validated_data["name"], 'features': data}])
 
 
@@ -190,7 +185,6 @@ class FeaturesViewSet(ViewSet):
         serialized.is_valid(True)
         serialized.save()
         return Response({"name": [serialized.validated_data['name']], "id": serialized.instance.id})
-
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
 # already created by D_Lorian //

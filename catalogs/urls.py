@@ -5,7 +5,7 @@ from catalogs.views import CategoriesViewSet, Products, FeaturesViewSet
 
 app_name = 'catalogs'
 router = DefaultRouter()
-router.register(r'', CategoriesViewSet, basename='Sub_Categories')
+router.register(r'', CategoriesViewSet, basename='Categories')
 
 urlpatterns = [
     path('<str:globalcategory>/<str:category>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),

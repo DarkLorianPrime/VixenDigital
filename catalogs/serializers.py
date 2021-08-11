@@ -16,16 +16,6 @@ def is_exist_subcategory(value):
         raise APIException202({'errors': 'already exists'})
 
 
-def validator_main(value):
-    if not Categories.objects.filter(Categories=None).exists():
-        raise APIException202({'errors': 'anything not found'})
-
-
-def validator_sub(value):
-    if not Categories.objects.filter(Categories=not None).exists():
-        raise APIException202({'errors': 'anything not found'})
-
-
 class CategorySerializer(ModelSerializer):
     class Meta:
         model = Categories
