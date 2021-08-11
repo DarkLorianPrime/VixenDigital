@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Main_Categories(models.Model):
+class Categories(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
     category = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
@@ -9,16 +9,16 @@ class Main_Categories(models.Model):
     def __str__(self):
         return self.name
 
-
-class Access_Token(models.Model):
-    token = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.token
+# // temporarily deprecated
+# class AccessToken(models.Model):
+#     token = models.CharField(max_length=255)
+#
+#     def __str__(self):
+#         return self.token
 
 
 class Features(models.Model):
-    category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='Catalog_Features')
+    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Features_Category')
     name = models.CharField(max_length=200)
     required = models.BooleanField()
 
@@ -27,7 +27,7 @@ class Features(models.Model):
 
 
 class Product(models.Model):
-    category = models.ForeignKey(Main_Categories, on_delete=models.CASCADE, related_name='product_category')
+    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Product_Category')
     description = models.TextField()
     name = models.CharField(max_length=100)
     slug = models.SlugField()
@@ -39,10 +39,10 @@ class Product(models.Model):
         return f'{self.name} - {self.slug}'
 
 
-class Features_for_product(models.Model):
-    features = models.ForeignKey(Features, on_delete=models.CASCADE, related_name='featuress')
+class FeaturesForProduct(models.Model):
+    features = models.ForeignKey('Features', on_delete=models.CASCADE, related_name='FeaturesFeatures_Features')
     value = models.CharField(max_length=500)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='FeaturesProduct_Features')
 
     def __str__(self):
         return f'{self.features.name} - {self.value}'

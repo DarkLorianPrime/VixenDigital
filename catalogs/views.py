@@ -2,23 +2,23 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from extras.Exceptions import APIException202
-from catalogs.models import Main_Categories, Product, Features, Features_for_product
+from catalogs.models import Categories, Product, Features
 from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer, \
     Features_for_productSerializer
 
 
 class CategoriesViewSet(ModelViewSet):
     serializer_class = CategorySerializer
-    model = Main_Categories
+    model = Categories
 
     def get_queryset(self):
         pk = self.kwargs.get('pk')
         if pk is None:
-            returned = Main_Categories.objects.filter(category=None)
+            returned = Categories.objects.filter(category=None)
             if not returned:
                 raise APIException202()
             return returned
-        returned = Main_Categories.objects.filter(slug=pk).first()
+        returned = Categories.objects.filter(slug=pk).first()
         if returned is None:
             raise APIException202()
         return returned
@@ -33,7 +33,7 @@ class CategoriesViewSet(ModelViewSet):
         ------
         :return: Will returned all categories located in specified catalog
         """
-        returned = Main_Categories.objects.filter(category=self.get_queryset()).values('name')
+        returned = Categories.objects.filter(category=self.get_queryset()).values('name')
         if not returned:
             return Response()
         return Response(returned)
@@ -80,8 +80,8 @@ class Products(ViewSet):
             category, in which we are looking for a product
         :return: List of products
         """
-        main_category = Main_Categories.objects.get(slug=globalcategory, category=None)
-        give_category = Main_Categories.objects.filter(slug=category, category=main_category).first()
+        main_category = Categories.objects.get(slug=globalcategory, category=None)
+        give_category = Categories.objects.filter(slug=category, category=main_category).first()
         products = Product.objects.filter(category=give_category)
         if give_category is None:
             return Response([])
@@ -120,22 +120,22 @@ class Products(ViewSet):
         exclude_list = ['name', 'description', 'price', 'stock', 'category']
         data = []
         product_information = request.POST.dict()
-        main_category = Main_Categories.objects.get(slug=globalcategory, category=None)
-        exist_category = Main_Categories.objects.get(slug=category, category=main_category).id
+        main_category = Categories.objects.get(slug=globalcategory, category=None)
+        exist_category = Categories.objects.get(slug=category, category=main_category).id
         product_information['category'] = exist_category
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(True)
         new_product.save()
         need_features = list(Features.objects.filter(category=exist_category, required=True).values_list('id', flat=True))
-        for k, v in product_information.items():
-            if k in exclude_list:
+        for name_features, value_features in product_information.items():
+            if name_features in exclude_list:
                 continue
-            if not k.isnumeric():
+            if not name_features.isnumeric():
                 new_product.instance.delete()
                 return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
-            if int(k) in need_features:
-                need_features.remove(int(k))
-            data.append({'features': k, 'value': v, 'product': new_product.instance.id})
+            if int(name_features) in need_features:
+                need_features.remove(int(name_features))
+            data.append({'features': name_features, 'value': value_features, 'product': new_product.instance.id})
         if len(need_features) > 0:
             new_product.instance.delete()
             return Response(['Ты не указал обязательные параметры', need_features])
@@ -161,8 +161,8 @@ class FeaturesViewSet(ViewSet):
             category, in which we are looking for a product
         :return: List of features of the specified products
         """
-        main_category = Main_Categories.objects.get(slug=mainCategory, category=None)
-        category = Main_Categories.objects.get(slug=subCategory, category=main_category)
+        main_category = Categories.objects.get(slug=mainCategory, category=None)
+        category = Categories.objects.get(slug=subCategory, category=main_category)
         all_features = Features.objects.filter(category=category)
         return Response(all_features.values('id', 'name', 'required'))
 
