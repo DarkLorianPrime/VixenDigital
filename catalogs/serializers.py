@@ -19,7 +19,7 @@ def is_exist_subcategory(value):
 class CategorySerializer(ModelSerializer):
     class Meta:
         model = Categories
-        fields = ['name', 'category']
+        fields = ['name', 'category', 'slug']
 
     def create(self, validated_data):
         validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)

@@ -1,8 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from extras.Exceptions import APIException202
-from catalogs.models import Categories, Product, Features
+from catalogs.models import Categories, Product, Features, FeaturesForProduct
 from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer, \
     Features_for_productSerializer
 
@@ -29,8 +28,9 @@ class CategoriesViewSet(ModelViewSet):
         ------
         :return: Will returned all categories located in specified catalog
         """
-        returned = Categories.objects.filter(category=self.get_queryset()).values('name')
-        return Response(returned)
+        returned = Categories.objects.filter(category=self.get_queryset()).values('name', 'slug')
+        returned_data = returned if self.get_queryset() is not None else [{'Catalog not found'}]
+        return Response(returned_data)
 
     def post(self, request, *args, **kwargs):
         """
@@ -122,18 +122,18 @@ class Products(ViewSet):
         new_product.save()
         required_features = list(
             Features.objects.filter(category=exist_category, required=True).values_list('id', flat=True))
-        for name_features, value_features in product_information.items():
-            if name_features in exclude_list:
+        for features_name, value_name in product_information.items():
+            if features_name in exclude_list:
                 continue
-            if not name_features.isnumeric():
+            if not features_name.isnumeric():
                 new_product.instance.delete()
                 return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
-            if int(name_features) in required_features:
-                required_features.remove(int(name_features))
-            data.append({'features': name_features, 'value': value_features, 'product': new_product.instance.id})
+            if int(features_name) in required_features:
+                required_features.remove(int(features_name))
+            data.append({'features': features_name, 'value': value_name, 'product': new_product.instance.id})
         if len(required_features) > 0:
             new_product.instance.delete()
-            return Response(['Ты не указал обязательные параметры', required_features])
+            return Response(['Ты не указал обязательные features (id):', required_features])
         serialized = Features_for_productSerializer(many=True, data=data)
         serialized.is_valid(True)
         serialized.save()
@@ -185,6 +185,20 @@ class FeaturesViewSet(ViewSet):
         serialized.is_valid(True)
         serialized.save()
         return Response({"name": [serialized.validated_data['name']], "id": serialized.instance.id})
+
+
+class SearchViewset(ViewSet):
+    def get(self, request, mainCategory, subCategory):
+        product = ['nothing was found']
+        get_data = self.request.GET
+        catalog = Categories.objects.filter(slug=mainCategory, category=None)
+        category = Categories.objects.filter(slug=subCategory, category=catalog.first())
+        if get_data.get('creator') is not None:
+            creator_name = Features.objects.filter(name='creator', category=category.first())
+            if creator_name:
+                products_id = FeaturesForProduct.objects.filter(features=creator_name.first())
+                product = Product.objects.filter(id__in=products_id.values_list('product')).values()
+        return Response(product)
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
 # already created by D_Lorian //

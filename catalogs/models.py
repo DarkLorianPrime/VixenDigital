@@ -3,7 +3,7 @@ from django.db import models
 
 class Categories(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(max_length=100, blank=True)
     category = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -46,3 +46,6 @@ class FeaturesForProduct(models.Model):
 
     def __str__(self):
         return f'{self.features.name} - {self.value}'
+
+
+# features_id - product_id
