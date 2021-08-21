@@ -25,6 +25,8 @@ class Features(models.Model):
     def __str__(self):
         return self.name
 
+# Я временно без микро, у меня тут принтер над ебалом печатает. Шумно пиздец.
+
 
 class Product(models.Model):
     category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Product_Category')
@@ -46,6 +48,3 @@ class FeaturesForProduct(models.Model):
 
     def __str__(self):
         return f'{self.features.name} - {self.value}'
-
-
-# features_id - product_id

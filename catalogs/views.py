@@ -193,12 +193,19 @@ class SearchViewset(ViewSet):
         get_data = self.request.GET
         catalog = Categories.objects.filter(slug=mainCategory, category=None)
         category = Categories.objects.filter(slug=subCategory, category=catalog.first())
+        # поиск вендора
         if get_data.get('creator') is not None:
             creator_name = Features.objects.filter(name='creator', category=category.first())
             if creator_name:
                 products_id = FeaturesForProduct.objects.filter(features=creator_name.first())
                 product = Product.objects.filter(id__in=products_id.values_list('product')).values()
-        return Response(product)
+        # ..?
+        getFeaturesForProduct = FeaturesForProduct.objects.filter(features_id__in=get_data.keys(), value__in=get_data.values())
+        print(getFeaturesForProduct)
+        product_id = getFeaturesForProduct.values('product_id')
+        print(product_id)
+        Product.objects.filter(id__in=product_id).values('name')
+        return Response(Product.objects.filter(id__in=product_id).values('name'))
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
 # already created by D_Lorian //
