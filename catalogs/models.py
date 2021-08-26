@@ -42,9 +42,10 @@ class Product(models.Model):
 
 
 class FeaturesForProduct(models.Model):
+    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='FFP_Category')
     features = models.ForeignKey('Features', on_delete=models.CASCADE, related_name='FeaturesFeatures_Features')
     value = models.CharField(max_length=500)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='FeaturesProduct_Features')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='FeaturesProduct_Features')
 
     def __str__(self):
-        return f'{self.features.name} - {self.value}'
+        return f'{self.features.name} - {self.value} - {self.product.name}'
