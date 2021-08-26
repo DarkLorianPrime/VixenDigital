@@ -7,7 +7,6 @@ from catalogs.serializers import CategorySerializer, ProductsSerializer, Feature
     Features_for_productSerializer
 
 
-
 class CategoriesViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     model = Categories
@@ -132,7 +131,8 @@ class Products(ViewSet):
                 return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
             if int(features_name) in required_features:
                 required_features.remove(int(features_name))
-            data.append({'features': features_name, 'value': value_name, 'product': new_product.instance.id, 'category': category})
+            data.append({'features': features_name, 'value': value_name, 'product': new_product.instance.id,
+                         'category': category})
         if len(required_features) > 0:
             new_product.instance.delete()
             return Response(['Ты не указал обязательные features (id):', required_features])
@@ -191,7 +191,6 @@ class FeaturesViewSet(ViewSet):
 
 class SearchViewset(ViewSet):
     def get(self, request, mainCategory, subCategory):
-        cursor = connection.cursor()
         query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
         query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
         products = []
@@ -203,15 +202,14 @@ class SearchViewset(ViewSet):
             products.append(str(features_value))
             products.append(str(category.first().id))
         final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
-        try:
-            cursor.execute(final_query, products)
-            row = cursor.fetchall()
-            lister = [element[0] for element in row]
-            products = Product.objects.filter(id__in=lister).values('name')
-        except:
-            products = ['Not found']
-        finally:
-            cursor.close()
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute(final_query, products)
+                row = cursor.fetchall()
+                lister = [element[0] for element in row]
+                products = Product.objects.filter(id__in=lister).values('name')
+            except:
+                products = ['Not found']
         return Response(products)
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
