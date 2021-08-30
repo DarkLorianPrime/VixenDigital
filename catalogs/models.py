@@ -25,7 +25,9 @@ class Features(models.Model):
     def __str__(self):
         return self.name
 
-# Я временно без микро, у меня тут принтер над ебалом печатает. Шумно пиздец.
+
+def default_json():
+    return {'null': 'null'}
 
 
 class Product(models.Model):
@@ -36,6 +38,7 @@ class Product(models.Model):
     price = models.IntegerField()
     stock = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
+    features = models.JSONField("Features_Product", default=default_json)
 
     def __str__(self):
         return f'{self.name} - {self.slug}'

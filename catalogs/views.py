@@ -1,4 +1,5 @@
 from django.db import connection
+from django.db.models import Value
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
@@ -114,6 +115,7 @@ class Products(ViewSet):
         """
         exclude_list = ['name', 'description', 'price', 'stock', 'category']
         data = []
+        fucking_json = {}
         product_information = request.POST.dict()
         catalog = Categories.objects.get(slug=globalcategory, category=None)
         category = Categories.objects.get(slug=category, category=catalog).id
@@ -128,17 +130,19 @@ class Products(ViewSet):
                 continue
             if not features_name.isnumeric():
                 new_product.instance.delete()
-                return Response([{'Тип ключей FEATURES должен быть равен ID, не названию.'}])
+                return Response([{'Тип ключей FEATURES должен быть равен ID, а не названию.'}])
             if int(features_name) in required_features:
                 required_features.remove(int(features_name))
-            data.append({'features': features_name, 'value': value_name, 'product': new_product.instance.id,
-                         'category': category})
+            fucking_json[features_name] = value_name
         if len(required_features) > 0:
             new_product.instance.delete()
             return Response(['Ты не указал обязательные features (id):', required_features])
-        serialized = Features_for_productSerializer(many=True, data=data)
-        serialized.is_valid(True)
-        serialized.save()
+        print(fucking_json)
+        new_product.instance.features = fucking_json
+        new_product.instance.save()
+        # serialized = Features_for_productSerializer(many=True, data=data)
+        # serialized.is_valid(True)
+        # serialized.save()
         return Response([{'name': new_product.validated_data["name"], 'features': data}])
 
 
@@ -191,25 +195,30 @@ class FeaturesViewSet(ViewSet):
 
 class SearchViewset(ViewSet):
     def get(self, request, mainCategory, subCategory):
-        query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
-        query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
+        # query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
+        # query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
         products = []
         get_data = self.request.GET
         catalog = Categories.objects.filter(slug=mainCategory, category=None)
         category = Categories.objects.filter(slug=subCategory, category=catalog.first())
-        for features_name, features_value in get_data.items():
-            products.append(str(features_name))
-            products.append(str(features_value))
-            products.append(str(category.first().id))
-        final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
-        with connection.cursor() as cursor:
-            try:
-                cursor.execute(final_query, products)
-                row = cursor.fetchall()
-                lister = [element[0] for element in row]
-                products = Product.objects.filter(id__in=lister).values('name')
-            except:
-                products = ['Not found']
+        # for features_name, features_value in get_data.items():
+        #     products.append(str(features_name))
+        #     products.append(str(features_value))
+        #     products.append(str(category.first().id))
+        # final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
+        d = Product.objects.filter(features__contains=[32]).values('id')
+        print(d.query)
+        print('wait, what?')
+        for i in d:
+            print(i.features)
+        # with connection.cursor() as cursor:
+        #     try:
+        #         cursor.execute(final_query, products)
+        #         row = cursor.fetchall()
+        #         lister = [element[0] for element in row]
+        #         products = Product.objects.filter(id__in=lister).values('name')
+        #     except:
+        #         products = ['Not found']
         return Response(products)
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
