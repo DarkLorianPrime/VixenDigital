@@ -80,7 +80,7 @@ class Products(ViewSet):
         give_category = Categories.objects.filter(slug=category, category=main_category).first()
         products = Product.objects.filter(category=give_category)
         if give_category is None:
-            return Response([{f'Категория {give_category} не найдена.'}])
+            return Response([{f'Категория {category} не найдена.'}])
         if products.count() <= 0:
             return Response([{f'Продукция {give_category} не найдена.'}])
         return Response([{products.values()}])
@@ -124,26 +124,26 @@ class Products(ViewSet):
         new_product.is_valid(True)
         new_product.save()
         required_features = list(
-            Features.objects.filter(category=category, required=True).values_list('id', flat=True))
+            Features.objects.filter(category=category, required=True).values_list('slug', flat=True))
         for features_name, value_name in product_information.items():
             if features_name in exclude_list:
                 continue
-            if not features_name.isnumeric():
-                new_product.instance.delete()
-                return Response([{'Тип ключей FEATURES должен быть равен ID, а не названию.'}])
-            if int(features_name) in required_features:
-                required_features.remove(int(features_name))
+            # if not features_name.isnumeric():
+            #     new_product.instance.delete()
+            #     return Response([{'Тип ключей FEATURES должен быть равен ID, а не названию.'}])
+            if features_name in required_features:
+                required_features.remove(features_name)
             fucking_json[features_name] = value_name
         if len(required_features) > 0:
             new_product.instance.delete()
-            return Response(['Ты не указал обязательные features (id):', required_features])
+            return Response(['Ты не указал обязательные features (slug):', required_features])
         print(fucking_json)
         new_product.instance.features = fucking_json
         new_product.instance.save()
         # serialized = Features_for_productSerializer(many=True, data=data)
         # serialized.is_valid(True)
         # serialized.save()
-        return Response([{'name': new_product.validated_data["name"], 'features': data}])
+        return Response([{'name': new_product.validated_data["name"], 'features': fucking_json}])
 
 
 class FeaturesViewSet(ViewSet):
@@ -163,9 +163,9 @@ class FeaturesViewSet(ViewSet):
         :return: List of features of the specified products
         """
         main_category = Categories.objects.get(slug=mainCategory, category=None)
-        category = Categories.objects.get(slug=subCategory, category=main_category)
+        category = Categories.objects.filter(slug=subCategory, category=main_category).first()
         all_features = Features.objects.filter(category=category)
-        return Response(all_features.values('id', 'name', 'required'))
+        return Response(all_features.values('id', 'name', 'slug', 'required'))
 
     def create(self, request, mainCategory, subCategory):
         """
@@ -197,20 +197,18 @@ class SearchViewset(ViewSet):
     def get(self, request, mainCategory, subCategory):
         # query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
         # query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
-        products = []
         get_data = self.request.GET
         catalog = Categories.objects.filter(slug=mainCategory, category=None)
         category = Categories.objects.filter(slug=subCategory, category=catalog.first())
+        query_args = {}
+        for features_name, features_value in get_data.items():
+            query_args[str(features_name)] = str(features_value)
         # for features_name, features_value in get_data.items():
         #     products.append(str(features_name))
         #     products.append(str(features_value))
         #     products.append(str(category.first().id))
         # final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
-        d = Product.objects.filter(features__contains=[32]).values('id')
-        print(d.query)
-        print('wait, what?')
-        for i in d:
-            print(i.features)
+        finally_get = Product.objects.filter(features__contains=query_args, category=category.first()).values('name', 'slug')
         # with connection.cursor() as cursor:
         #     try:
         #         cursor.execute(final_query, products)
@@ -219,7 +217,7 @@ class SearchViewset(ViewSet):
         #         products = Product.objects.filter(id__in=lister).values('name')
         #     except:
         #         products = ['Not found']
-        return Response(products)
+        return Response(finally_get)
 
 # unused token 13a_6gQ3ABi9GrZT59yMLw
 # already created by D_Lorian //

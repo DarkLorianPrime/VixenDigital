@@ -20,6 +20,7 @@ class Categories(models.Model):
 class Features(models.Model):
     category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Features_Category')
     name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=2000)
     required = models.BooleanField()
 
     def __str__(self):

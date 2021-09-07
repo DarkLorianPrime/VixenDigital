@@ -51,6 +51,7 @@ class Features_for_productSerializer(ModelSerializer):
 
 class FeaturesSerializer(Serializer):
     name = serializers.CharField()
+    slug = serializers.SlugField()
     catalog = serializers.SlugField()
     category = serializers.SlugField()
     required = serializers.BooleanField()
@@ -59,5 +60,5 @@ class FeaturesSerializer(Serializer):
         main_category = Categories.objects.get(slug=validated_data['catalog'], category=None)
         data = Categories.objects.get(slug=validated_data['category'], category=main_category)
         validated_data['category'] = data
-        return Features.objects.create(**{'name': validated_data['name'], 'category': validated_data['category'], 'required': validated_data['required']})
+        return Features.objects.create(**{'name': validated_data['name'], 'category': validated_data['category'], 'required': validated_data['required'], 'slug': validated_data['slug']})
 
