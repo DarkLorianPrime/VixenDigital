@@ -60,5 +60,4 @@ class FeaturesSerializer(Serializer):
         main_category = Categories.objects.get(slug=validated_data['catalog'], category=None)
         data = Categories.objects.get(slug=validated_data['category'], category=main_category)
         validated_data['category'] = data
-        return Features.objects.create(**{'name': validated_data['name'], 'category': validated_data['category'], 'required': validated_data['required'], 'slug': validated_data['slug']})
-
+        return Features.objects.create(**validated_data)

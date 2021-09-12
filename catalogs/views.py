@@ -200,8 +200,11 @@ class SearchViewset(ViewSet):
         get_data = self.request.GET
         catalog = Categories.objects.filter(slug=mainCategory, category=None)
         category = Categories.objects.filter(slug=subCategory, category=catalog.first())
+        if not category.exists():
+            return Response(['Category not found'])
+        category = category.first()
         query_args = {}
-        for features_name, features_value in get_data.items():
+        for features_name, features_value in get_data:
             query_args[str(features_name)] = str(features_value)
         # for features_name, features_value in get_data.items():
         #     products.append(str(features_name))

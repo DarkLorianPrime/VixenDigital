@@ -26,11 +26,6 @@ class Features(models.Model):
     def __str__(self):
         return self.name
 
-
-def default_json():
-    return {'null': 'null'}
-
-
 class Product(models.Model):
     category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Product_Category')
     description = models.TextField()
@@ -39,7 +34,7 @@ class Product(models.Model):
     price = models.IntegerField()
     stock = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
-    features = models.JSONField("Features_Product", default=default_json)
+    features = models.JSONField("Features_Product", default={'null': 'null'})
 
     def __str__(self):
         return f'{self.name} - {self.slug}'
