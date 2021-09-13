@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Categories(models.Model):
+class Class(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, blank=True)
     category = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
@@ -18,7 +18,7 @@ class Categories(models.Model):
 
 
 class Features(models.Model):
-    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Features_Category')
+    category = models.ForeignKey('Class', on_delete=models.CASCADE, related_name='Features_Category')
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=2000)
     required = models.BooleanField()
@@ -26,25 +26,26 @@ class Features(models.Model):
     def __str__(self):
         return self.name
 
+
 class Product(models.Model):
-    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='Product_Category')
+    category = models.ForeignKey('Class', on_delete=models.CASCADE, related_name='Product_Category')
     description = models.TextField()
     name = models.CharField(max_length=100)
     slug = models.SlugField()
     price = models.IntegerField()
     stock = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
-    features = models.JSONField("Features_Product", default={'null': 'null'})
+    features = models.JSONField("Features_Product", default=dict)
 
     def __str__(self):
         return f'{self.name} - {self.slug}'
 
 
-class FeaturesForProduct(models.Model):
-    category = models.ForeignKey('Categories', on_delete=models.CASCADE, related_name='FFP_Category')
-    features = models.ForeignKey('Features', on_delete=models.CASCADE, related_name='FeaturesFeatures_Features')
-    value = models.CharField(max_length=500)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='FeaturesProduct_Features')
-
-    def __str__(self):
-        return f'{self.features.name} - {self.value} - {self.product.name}'
+# class FeaturesForProduct(models.Model):
+#     category = models.ForeignKey('Category', on_delete=models.CASCADE, related_name='FFP_Category')
+#     features = models.ForeignKey('Features', on_delete=models.CASCADE, related_name='FeaturesFeatures_Features')
+#     value = models.CharField(max_length=500)
+#     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='FeaturesProduct_Features')
+#
+#     def __str__(self):
+#         return f'{self.features.name} - {self.value} - {self.product.name}'
