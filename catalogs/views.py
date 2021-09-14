@@ -113,7 +113,6 @@ class Products(ViewSet):
             Response with name of created product
         """
         exclude_list = ['name', 'description', 'price', 'stock', 'category']
-        features_json = {}
         product_information = request.POST.dict()
         catalog = Category.objects.filter(slug=catalog, category=None).first()
         category = Category.objects.filter(slug=category, category=catalog)
@@ -129,7 +128,7 @@ class Products(ViewSet):
         required = {features_name: value_name for features_name, value_name in features_json.items() if
                     features_name in required_features}
         not_insered_required = set(required_features) - set(required)
-        if not_insered_required != {}:
+        if not_insered_required:
             return Response({'error': 'Ты не указал обязательные features (slug):', 'arguments': not_insered_required})
         new_product.features = features_json
         new_product.save()
