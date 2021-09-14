@@ -81,7 +81,8 @@ class Products(ViewSet):
             return Response({'error': f'Категория {category} не найдена.'})
         if products.count() <= 0:
             return Response({'error': f'Продукция {category} не найдена.'})
-        return Response({'products': products.values()})
+        print(products)
+        return Response(products.values())
 
     def create(self, request, catalog, category):
         """
@@ -114,23 +115,22 @@ class Products(ViewSet):
         exclude_list = ['name', 'description', 'price', 'stock', 'category']
         features_json = {}
         product_information = request.POST.dict()
-        catalog = Category.objects.get(slug=catalog, category=None)
-        category = Category.objects.get(slug=category, category=catalog)
+        catalog = Category.objects.filter(slug=catalog, category=None).first()
+        category = Category.objects.filter(slug=category, category=catalog)
         if not category.exists():
             return Response({'error': 'Category not found'})
-        product_information['category'] = category.id
+        product_information['category'] = category.first().id
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(raise_exception=True)
-        required_features = list(
-            Features.objects.filter(category=category, required=True).values_list('slug', flat=True))
-        for features_name, value_name in product_information.items():
-            if features_name in exclude_list:
-                continue
-            if features_name in required_features:
-                required_features.remove(features_name)
-            features_json[features_name] = value_name
-        if len(required_features) > 0:
-            return Response({'error': 'Ты не указал обязательные features (slug):', 'arguments': required_features})
+        required_features = Features.objects.filter(category=category.first(), required=True).values_list('slug',
+                                                                                                          flat=True)
+        features_json = {features_name: value_name for features_name, value_name in product_information.items() if
+                         features_name not in exclude_list}
+        required = {features_name: value_name for features_name, value_name in features_json.items() if
+                    features_name in required_features}
+        not_insered_required = set(required_features) - set(required)
+        if not_insered_required != {}:
+            return Response({'error': 'Ты не указал обязательные features (slug):', 'arguments': not_insered_required})
         new_product.features = features_json
         new_product.save()
         return Response([{'name': new_product.validated_data["name"], 'features': features_json}])
