@@ -55,7 +55,7 @@ class CategoryViewSet(ModelViewSet):
         returned = self.get_serializer(data={**parameters, 'category': self.get_queryset().id})
         returned.is_valid(raise_exception=True)
         returned.save()
-        return Response({returned.validated_data['name']})
+        return Response({'name': returned.validated_data['name']})
 
 
 class Products(ViewSet):
@@ -81,7 +81,7 @@ class Products(ViewSet):
             return Response({'error': f'Категория {category} не найдена.'})
         if products.count() <= 0:
             return Response({'error': f'Продукция {category} не найдена.'})
-        return Response([{products.values()}])
+        return Response({'products': products.values()})
 
     def create(self, request, catalog, category):
         """
@@ -117,7 +117,7 @@ class Products(ViewSet):
         catalog = Category.objects.get(slug=catalog, category=None)
         category = Category.objects.get(slug=category, category=catalog)
         if not category.exists():
-            return Response({['Category not found']})
+            return Response({'error': 'Category not found'})
         product_information['category'] = category.id
         new_product = ProductsSerializer(data=product_information)
         new_product.is_valid(raise_exception=True)
