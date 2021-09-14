@@ -55,7 +55,7 @@ class CategoryViewSet(ModelViewSet):
         returned = self.get_serializer(data={**parameters, 'category': self.get_queryset().id})
         returned.is_valid(raise_exception=True)
         returned.save()
-        return Response([{returned.validated_data['name']}])
+        return Response({returned.validated_data['name']})
 
 
 class Products(ViewSet):
@@ -78,9 +78,9 @@ class Products(ViewSet):
         category = Category.objects.filter(slug=category, category=catalog).first()
         products = Product.objects.filter(category=category)
         if category is None:
-            return Response([{f'Категория {category} не найдена.'}])
+            return Response({'error': f'Категория {category} не найдена.'})
         if products.count() <= 0:
-            return Response([{f'Продукция {category} не найдена.'}])
+            return Response({'error': f'Продукция {category} не найдена.'})
         return Response([{products.values()}])
 
     def create(self, request, catalog, category):
@@ -130,7 +130,7 @@ class Products(ViewSet):
                 required_features.remove(features_name)
             features_json[features_name] = value_name
         if len(required_features) > 0:
-            return Response(['Ты не указал обязательные features (slug):', required_features])
+            return Response({'error': 'Ты не указал обязательные features (slug):', 'arguments': required_features})
         new_product.features = features_json
         new_product.save()
         return Response([{'name': new_product.validated_data["name"], 'features': features_json}])
@@ -155,7 +155,7 @@ class FeaturesViewSet(ViewSet):
         main_category = Category.objects.filter(slug=catalog, category=None)
         category = Category.objects.filter(slug=category, category=main_category.first())
         if not category.exists():
-            return Response(['Category not found'])
+            return Response({'error': 'Category not found'})
         category = category.first()
         all_features = Features.objects.filter(category=category)
         return Response(all_features.values('id', 'name', 'slug', 'required'))
@@ -194,7 +194,7 @@ class SearchViewset(ViewSet):
         catalog = Category.objects.filter(slug=catalog, category=None)
         category = Category.objects.filter(slug=category, category=catalog.first())
         if not category.exists():
-            return Response(['Category not found'])
+            return Response({'error': 'Category not found'})
         category = category.first()
         # for features_name, features_value in get_data.items():
         #     products.append(str(features_name))
