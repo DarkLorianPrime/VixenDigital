@@ -28,7 +28,7 @@ class CategoryViewSet(ModelViewSet):
         ------
         :return: Will returned all Category located in specified catalog
         """
-        returned = Category.objects.filter(category=self.get_queryset()).values('name', 'slug')
+        returned = Category.objects.filter(category=self.get_queryset()).values('name', 'category__name', 'slug')
         returned_data = returned if self.get_queryset() is not None else [{'catalog not found'}]
         return Response(returned_data)
 
@@ -81,7 +81,6 @@ class Products(ViewSet):
             return Response({'error': f'Категория {category} не найдена.'})
         if products.count() <= 0:
             return Response({'error': f'Продукция {category} не найдена.'})
-        print(products)
         return Response(products.values())
 
     def create(self, request, catalog, category):
@@ -215,5 +214,5 @@ class SearchViewset(ViewSet):
 # already created by D_Lorian //
 
 
-# Wait, its a pseudocode (shit code)
+# Wait, its a shit code
 # Always has been.
