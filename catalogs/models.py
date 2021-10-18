@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 
@@ -9,12 +11,13 @@ class Class(models.Model):
     def __str__(self):
         return self.name
 
-# // temporarily deprecated
-# class AccessToken(models.Model):
-#     token = models.CharField(max_length=255)
-#
-#     def __str__(self):
-#         return self.token
+
+class Token(models.Model):
+    token = models.CharField(max_length=255)
+    expired = models.DateTimeField(default=datetime.datetime.now() + datetime.timedelta(minutes=30))
+
+    def __str__(self):
+        return self.token
 
 
 class Features(models.Model):

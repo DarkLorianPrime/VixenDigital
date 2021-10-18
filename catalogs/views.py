@@ -1,7 +1,9 @@
+import json
+
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from catalogs.models import Product, Features
+from catalogs.models import Product, Features, Token
 from catalogs.models import Class as Category
 from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
 
@@ -28,8 +30,9 @@ class CategoryViewSet(ModelViewSet):
         ------
         :return: Will returned all Category located in specified catalog
         """
-        returned = Category.objects.filter(category=self.get_queryset()).values('name', 'category__name', 'slug')
-        returned_data = returned if self.get_queryset() is not None else [{'catalog not found'}]
+        returned = Category.objects.filter(category=self.get_queryset()).values('id', 'name', 'category__name', 'slug')
+        returned_data = returned if self.get_queryset() is not None else {'error': 'catalog not found'}
+        print(returned_data)
         return Response(returned_data)
 
     def post(self, request, *args, **kwargs):
@@ -51,11 +54,17 @@ class CategoryViewSet(ModelViewSet):
         :return:
             Response with name of created category
         """
+        if not request.access:
+            return Response({'error': 'Token expired', 'token': Token.objects.first().token})
         parameters = request.POST.dict()
         returned = self.get_serializer(data={**parameters, 'category': self.get_queryset().id})
         returned.is_valid(raise_exception=True)
         returned.save()
         return Response({'name': returned.validated_data['name']})
+
+    def destroy(self, request, *args, **kwargs):
+        self.model.objects.filter(pk=json.loads(request.body)['id']).delete()
+        return Response({'status': 'ok'})
 
 
 class Products(ViewSet):
@@ -74,7 +83,7 @@ class Products(ViewSet):
             category, in which we are looking for a product
         :return: List of products
         """
-        catalog = Category.objects.get(slug=catalog, category=None)
+        catalog = Category.objects.filter(slug=catalog, category=None).first()
         category = Category.objects.filter(slug=category, category=catalog).first()
         products = Product.objects.filter(category=category)
         if category is None:
@@ -122,8 +131,7 @@ class Products(ViewSet):
         new_product.is_valid(raise_exception=True)
         required_features = Features.objects.filter(category=category.first(), required=True).values_list('slug',
                                                                                                           flat=True)
-        features_json = {features_name: value_name for features_name, value_name in product_information.items() if
-                         features_name not in exclude_list}
+        features_json = {features_name: value_name for features_name, value_name in product_information.items() if features_name not in exclude_list}
         required = {features_name: value_name for features_name, value_name in features_json.items() if
                     features_name in required_features}
         not_insered_required = set(required_features) - set(required)
@@ -186,30 +194,35 @@ class FeaturesViewSet(ViewSet):
 
 class SearchViewset(ViewSet):
     def get(self, request, catalog, category):
-        # query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
-        # query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
         get_data = self.request.GET
         catalog = Category.objects.filter(slug=catalog, category=None)
         category = Category.objects.filter(slug=category, category=catalog.first())
         if not category.exists():
             return Response({'error': 'Category not found'})
         category = category.first()
-        # for features_name, features_value in get_data.items():
-        #     products.append(str(features_name))
-        #     products.append(str(features_value))
-        #     products.append(str(category.first().id))
-        # final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
         finally_get = Product.objects.filter(features__contains=get_data, category=category)
-        # with connection.cursor() as cursor:
-        #     try:
-        #         cursor.execute(final_query, products)
-        #         row = cursor.fetchall()
-        #         lister = [element[0] for element in row]
-        #         products = Product.objects.filter(id__in=lister).values('name')
-        #     except:
-        #         products = ['Not found']
         return Response(finally_get.values('name', 'slug'))
 
+
+"""
+Older Search:
+query = '''SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value = %s and catalogs_featuresforproduct.category_id = %s \n'''
+query_add = '''INTERSECT SELECT product_id FROM catalogs_FeaturesForProduct WHERE features_id = %s and value=%s and catalogs_featuresforproduct.category_id = %s'''
+final_query = query if len(get_data.keys()) <= 1 else query + query_add * (len(get_data.keys()) - 1)
+with connection.cursor() as cursor:
+    try:
+        cursor.execute(final_query, products)
+        row = cursor.fetchall()
+        lister = [element[0] for element in row]
+        products = Product.objects.filter(id__in=lister).values('name')
+    except:
+        products = ['Not found']
+I dont now what is the search:
+for features_name, features_value in get_data.items():
+    products.append(str(features_name))
+        products.append(str(features_value))
+            products.append(str(category.first().id))
+"""
 # unused token 13a_6gQ3ABi9GrZT59yMLw
 # already created by D_Lorian //
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import Serializer, ModelSerializer
 
-from catalogs.models import Product, Features  # FeaturesForProduct
+from catalogs.models import Product, Features, Token  # FeaturesForProduct
 from catalogs.models import Class as Category
 from extras.Exceptions import APIException202
 from extras.Serialize_Extra import translit
@@ -20,9 +20,12 @@ def is_exist_subcategory(value):
 class CategorySerializer(ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name', 'category', 'slug']
+        fields = ['name', 'category', 'slug', 'id']
 
     def create(self, validated_data):
+        request = self.context.get('request')
+        if not request.access:
+            raise APIException202({'token': Token.objects.first().token})
         validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)
         if validated_data.get('category') is None:
             is_exist_category(validated_data['name'])
@@ -52,7 +55,6 @@ class ProductsSerializer(ModelSerializer):
 
 class FeaturesSerializer(Serializer):
     name = serializers.CharField()
-    slug = serializers.SlugField()
     catalog = serializers.SlugField()
     category = serializers.SlugField()
     required = serializers.BooleanField()
@@ -61,4 +63,5 @@ class FeaturesSerializer(Serializer):
         main_category = Category.objects.get(slug=validated_data['catalog'], category=None)
         data = Category.objects.get(slug=validated_data['category'], category=main_category)
         validated_data['category'] = data
+        del validated_data['catalog']
         return Features.objects.create(**validated_data)

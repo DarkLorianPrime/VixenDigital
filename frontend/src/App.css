@@ -1,0 +1,97 @@
+<<<<<<< Updated upstream
+.App {
+  text-align: center;
+}
+
+=======
+>>>>>>> Stashed changes
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+<<<<<<< Updated upstream
+=======
+.delete_button:hover {
+    color: darkgreen;
+}
+.catalog_button {
+    background: whitesmoke;
+    width: 70%;
+    text-align: center;
+    padding: 5px 0 5px 0;
+    border: 1px solid whitesmoke;
+    border-radius: 25px 0 25px 0;
+    margin: 5px;
+    right: 0;
+    font-size: 25px;
+}
+.catalog_button:hover {
+    background: lightgray;
+}
+.content-catalogs {
+    border-radius: 25px;
+    box-shadow: 10px 10px 10px 0 #282c34;
+    width: 30%;
+    height: 65vh;
+}
+.element {
+    font-size: 25px;
+    margin: 5px 5px 5px 20px;
+}
+.element:hover {
+    color: orangered;
+}
+.content-catalogs {
+    vertical-align: top;
+}
+>>>>>>> Stashed changes
+a {
+    outline: none;
+    text-decoration: none;
+    color: black;
+}
+.header {
+<<<<<<< Updated upstream
+    font-size: 70px;
+    background-color: #282c34;
+    color: white;
+    padding: 20px;
+=======
+    font-size: 30px;
+    background-color: #282c34;
+    color: white;
+>>>>>>> Stashed changes
+}
+.main_button {
+    width: 49%;
+    margin: 1%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
