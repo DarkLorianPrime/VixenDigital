@@ -3,40 +3,17 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from backend.app.catalogs.models import Product, Features
-from backend.app.catalogs.models import Class as Category
-from backend.app.catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
+from catalogs.models import Product, Features
+from catalogs.models import Class as Category
+from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
 
 
 class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
-    model = Category
+    lookup_field = "slug"
+    queryset = Category.objects.all()
 
-    def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        filters = {"category": None}
-
-        if pk is not None:
-            filters = {"slug": pk}
-
-        returned = Category.objects.filter(**filters).first()
-        return returned
-
-    def retrieve(self, request, *args, **kwargs):
-        """
-        Description:
-        For a construction of the type: URL/core/
-        For example: darklorian.space/Computers/
-        ------
-        Request action: GET
-        ------
-        :return: Will returned all Category located in specified core
-        """
-        returned = Category.objects.filter(category=self.get_queryset()).values('name', 'slug')
-        returned_data = returned if self.get_queryset() is not None else [{'core not found'}]
-        return Response(returned_data)
-
-    def post(self, request, *args, **kwargs):
+    def post(self, request, slug, *args, **kwargs):
         """
         Description:
         Creating a new section in the core section
@@ -56,12 +33,18 @@ class CategoryViewSet(ModelViewSet):
             Response with name of created category
         """
         parameters = request.POST.dict()
-        returned = self.get_serializer(data={**parameters, 'category': self.get_queryset().id})
+        catalog = Category.objects.filter(slug=slug).first()
+        if not catalog:
+            raise NotFound()
+
+        params = {**parameters, 'category': catalog.id}
+        print(params)
+        returned = self.get_serializer(data=params)
         returned.is_valid(raise_exception=True)
         returned.save()
 
         # NEED_SERIALIZER
-        return Response({returned.validated_data['name']})
+        return Response(returned.data)
 
 
 class Products(ViewSet):

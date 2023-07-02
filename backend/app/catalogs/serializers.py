@@ -1,33 +1,40 @@
 from rest_framework import serializers
 from rest_framework.serializers import Serializer, ModelSerializer
 
-from backend.app.catalogs.models import Product, Features  # FeaturesForProduct
-from backend.app.catalogs.models import Class as Category
-from backend.app.extras.Exceptions import APIException202
-from backend.app.extras.Serialize_Extra import translit
+from catalogs.models import Product, Features
+from catalogs.models import Class as Category
+from extras.Exceptions import APIException202
+from extras.slugifer import slugify
+
+WO = {"write_only": True}
 
 
-def is_exist_category(value):
+def is_exist_catalog(value: str) -> bool:
     if Category.objects.filter(name=value, category=None).exists():
         raise APIException202({'error': 'already exists'})
+    return False
 
 
-def is_exist_subcategory(value):
+def is_exist_category(value: dict) -> bool:
     if Category.objects.filter(name=value['name'], category=value['category']).exists():
         raise APIException202({'error': 'already exists'})
+    return False
 
 
 class CategorySerializer(ModelSerializer):
+    name = serializers.CharField(validators=[is_exist_catalog])
+
+    def validate(self, attrs):
+        if attrs.get("category"):
+            is_exist_category(attrs)
+        return attrs
+
     class Meta:
         model = Category
         fields = ['name', 'category', 'slug']
 
     def create(self, validated_data):
-        validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)
-        if validated_data.get('category') is None:
-            is_exist_category(validated_data['name'])
-            return Category.objects.create(**validated_data)
-        is_exist_subcategory(validated_data)
+        validated_data["slug"] = slugify(validated_data['name'])
         return Category.objects.create(**validated_data)
 
 
@@ -37,17 +44,8 @@ class ProductsSerializer(ModelSerializer):
         fields = ['category', 'description', 'name', 'price', 'stock']
 
     def create(self, validated_data):
-        validated_data['slug'] = translit(validated_data['name'], slugify=True, lower=True)
+        validated_data['slug'] = slugify(validated_data['name'])
         return Product.objects.create(**validated_data)
-
-
-# class Features_for_productSerializer(ModelSerializer):
-#     class Meta:
-#         model = FeaturesForProduct
-#         fields = '__all__'
-#
-#     def create(self, validated_data):
-#         return FeaturesForProduct.objects.create(**validated_data)
 
 
 class FeaturesSerializer(Serializer):
