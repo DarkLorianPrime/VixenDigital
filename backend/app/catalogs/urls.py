@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from backend.app.catalogs.views import CategoryViewSet, Products, FeaturesViewSet, SearchViewset
+from catalogs.views import CategoryViewSet, Products, FeaturesViewSet, SearchViewset
 
 app_name = 'catalogs'
 router = DefaultRouter()
