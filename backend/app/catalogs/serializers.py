@@ -9,12 +9,12 @@ from backend.app.extras.Serialize_Extra import translit
 
 def is_exist_category(value):
     if Category.objects.filter(name=value, category=None).exists():
-        raise APIException202({'errors': 'already exists'})
+        raise APIException202({'error': 'already exists'})
 
 
 def is_exist_subcategory(value):
     if Category.objects.filter(name=value['name'], category=value['category']).exists():
-        raise APIException202({'errors': 'already exists'})
+        raise APIException202({'error': 'already exists'})
 
 
 class CategorySerializer(ModelSerializer):
