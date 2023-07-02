@@ -1,0 +1,31 @@
+version: "3.10"
+x-postgres-environment: &x-postgres-environment
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_HOST: ${POSTGRES_HOST}
+  POSTGRES_NAME: ${POSTGRES_NAME}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+services:
+  database:
+    image: postgres:alpine
+    restart: always
+    environment:
+      <<: *x-postgres-environment
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: backend
+    restart: always
+    depends_on:
+      - database
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./backend/app/:/application"
+    environment:
+      <<: *x-postgres-environment
+      SECURITY_TOKEN: ${SECURITY_TOKEN}
+
+volumes:
+  pgdata:
