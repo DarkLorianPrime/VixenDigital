@@ -1,50 +1,52 @@
+from rest_framework import status
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from catalogs.models import Product, Features
-from catalogs.models import Class as Category
-from catalogs.serializers import CategorySerializer, ProductsSerializer, FeaturesSerializer
+from catalogs.models import Category
+from catalogs.serializers import CatalogSerializer, ProductsSerializer, FeaturesSerializer, CategorySerializer
+from core.permissions import ReadOnly
 
 
 class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     lookup_field = "slug"
-    queryset = Category.objects.all()
+    allowed_endpoints = ["GET", "HEAD"]
+    permission_classes = [IsAuthenticated | ReadOnly]
 
-    def post(self, request, slug, *args, **kwargs):
-        """
-        Description:
-        Creating a new section in the core section
-        ------
-        Request Action: POST
-        ------
-        Raises:
-        :raise An exception will be thrown if one of the parameters was not passed
-        :raise If this category already exists
-        -----
-        POST data (Parameters):
-        :param: name : str
-            Name of creating section
-        :param: category : slug
-            An unspecified parameter. Taken from queryset
-        :return:
-            Response with name of created category
-        """
-        parameters = request.POST.dict()
-        catalog = Category.objects.filter(slug=slug).first()
+    def get_queryset(self):
+        catalog = self.kwargs.get("catalog")
         if not catalog:
             raise NotFound()
 
-        params = {**parameters, 'category': catalog.id}
-        print(params)
-        returned = self.get_serializer(data=params)
-        returned.is_valid(raise_exception=True)
-        returned.save()
+        return Category.objects.filter(category__slug=catalog)
 
-        # NEED_SERIALIZER
-        return Response(returned.data)
+    def create(self, request, *args, **kwargs):
+        values = request.data.dict()
+
+        catalog = Category.objects.filter(slug=kwargs["catalog"]).first()
+
+        if not catalog:
+            raise NotFound()
+
+        values["category"] = catalog.id
+
+        serializer = self.get_serializer(data=values)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class CatalogViewSet(ModelViewSet):
+    serializer_class = CatalogSerializer
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        return Category.objects.filter(category=None)
 
 
 class Products(ViewSet):
@@ -199,7 +201,3 @@ class SearchViewset(ViewSet):
         finally_get = Product.objects.filter(features__contains=get_data, category=category)
 
         return Response(finally_get.values('name', 'slug'))
-
-
-# Wait, its a pseudocode (shit code)
-# Always has ben.

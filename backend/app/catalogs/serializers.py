@@ -1,12 +1,11 @@
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 from rest_framework.serializers import Serializer, ModelSerializer
 
 from catalogs.models import Product, Features
-from catalogs.models import Class as Category
+from catalogs.models import Category
 from extras.Exceptions import APIException202
 from extras.slugifer import slugify
-
-WO = {"write_only": True}
 
 
 def is_exist_catalog(value: str) -> bool:
@@ -21,21 +20,31 @@ def is_exist_category(value: dict) -> bool:
     return False
 
 
-class CategorySerializer(ModelSerializer):
-    name = serializers.CharField(validators=[is_exist_catalog])
-
-    def validate(self, attrs):
-        if attrs.get("category"):
-            is_exist_category(attrs)
-        return attrs
+class CatalogSerializer(ModelSerializer):
+    name = serializers.CharField(validators=[is_exist_catalog],
+                                 max_length=127,
+                                 min_length=1)
 
     class Meta:
         model = Category
-        fields = ['name', 'category', 'slug']
+        fields = ['name', 'slug']
 
     def create(self, validated_data):
         validated_data["slug"] = slugify(validated_data['name'])
         return Category.objects.create(**validated_data)
+
+
+class CategorySerializer(CatalogSerializer):
+    class Meta:
+        model = Category
+        fields = ["name", "category", "slug"]
+
+    def validate(self, attrs):
+        if not attrs.get("category"):
+            raise NotFound()
+
+        is_exist_category(attrs)
+        return attrs
 
 
 class ProductsSerializer(ModelSerializer):
