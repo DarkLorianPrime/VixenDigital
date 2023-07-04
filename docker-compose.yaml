@@ -26,6 +26,7 @@ services:
     environment:
       <<: *x-postgres-environment
       SECURITY_TOKEN: ${SECURITY_TOKEN}
+      PYTHONUNBUFFERED: 1
 
 volumes:
   pgdata:
