@@ -70,6 +70,21 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-minio-backend"
+version = "3.5.0"
+description = "The django-minio-backend provides a wrapper around the MinIO Python Library."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-minio-backend-3.5.0.tar.gz", hash = "sha256:be9eb19dbe3ecaf5b6561b37ca90adde8bf735ab3557738de45edfe7ee172d46"},
+    {file = "django_minio_backend-3.5.0-py3-none-any.whl", hash = "sha256:fcb9031b1aa7ca5c5d08a512bbf03fb95ca03a5381a90cc60b8c8d9cc85b867c"},
+]
+
+[package.dependencies]
+Django = ">=2.2.2"
+minio = ">=7.0.2"
+
+[[package]]
 name = "djangorestframework"
 version = "3.14.0"
 description = "Web APIs for Django, made easy."
@@ -187,6 +202,21 @@ files = [
     {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
     {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
 ]
+
+[[package]]
+name = "minio"
+version = "7.1.15"
+description = "MinIO Python SDK for Amazon S3 Compatible Cloud Storage"
+optional = false
+python-versions = "*"
+files = [
+    {file = "minio-7.1.15-py3-none-any.whl", hash = "sha256:1afdf01c1bc8b57ddd12d438e3e168d625465b56f4d1c2af7576744c688e84c6"},
+    {file = "minio-7.1.15.tar.gz", hash = "sha256:fcf8ac2cef310d5ddff2bef2c42f4e5a8bb546b87bca5bf8832135db054ca4e1"},
+]
+
+[package.dependencies]
+certifi = "*"
+urllib3 = "*"
 
 [[package]]
 name = "psycopg"
@@ -365,7 +395,24 @@ files = [
     {file = "tzdata-2023.3.tar.gz", hash = "sha256:11ef1e08e54acb0d4f95bdb1be05da659673de4acbd21bf9c69e94cc5e907a3a"},
 ]
 
+[[package]]
+name = "urllib3"
+version = "2.0.3"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "urllib3-2.0.3-py3-none-any.whl", hash = "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1"},
+    {file = "urllib3-2.0.3.tar.gz", hash = "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"},
+]
+
+[package.extras]
+brotli = ["brotli (>=1.0.9)", "brotlicffi (>=0.8.0)"]
+secure = ["certifi", "cryptography (>=1.9)", "idna (>=2.0.0)", "pyopenssl (>=17.1.0)", "urllib3-secure-extra"]
+socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
+zstd = ["zstandard (>=0.18.0)"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "ef7bc2f738f16eedc85453a045c726ca436a88b5297205e41825bddd5c393b54"
+content-hash = "98a50cf1749ce21488a2e6c04581ed1773999f9c283c84a515bb6f26e1dd4d7f"

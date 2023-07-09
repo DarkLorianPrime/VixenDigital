@@ -36,10 +36,10 @@ class RegistrationSerializer(ModelSerializer):
 
     def validate(self, attrs):
         if not attrs["password"] == attrs.get("double_password"):
-            raise ValidationError(detail="password and double password is not equal", code=400)
+            raise ValidationError(detail={"password": "password and double password is not equal"}, code=400)
 
         if self.Meta.model.objects.filter(Q(username=attrs["username"]) | Q(email=attrs["email"])).exists():
-            raise ValidationError(detail="this email or username already exists", code=400)
+            raise ValidationError(detail={"username": "this email or username already exists"}, code=400)
 
         return attrs
 

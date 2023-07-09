@@ -4,7 +4,7 @@ from catalogs.routers import CategoryRouter
 from catalogs.views import CatalogViewSet, CategoryViewSet, OrganizationViewSet
 
 organization_router = SimpleRouter()
-organization_router.register(r"brand/", OrganizationViewSet, basename="Organization")
+organization_router.register(r"brand", OrganizationViewSet, basename="Organization")
 
 category_router = CategoryRouter()
 category_router.register(r"catalog/(?P<catalog>[0-9A-z-_]{1,128})", CategoryViewSet, basename="Category")

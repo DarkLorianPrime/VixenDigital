@@ -38,7 +38,7 @@ class FeatureSerializer(Serializer):
     def validate(self, attrs):
         is_exists = feature.objects.filter(name=attrs["name"], category=self.context["category_id"])
         if is_exists.parse()[0]["hits"]:
-            raise ValidationError(code=409, detail="already exists")
+            raise ValidationError(code=409, detail={"feature": "already exists"})
 
         return attrs
 

@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     'catalogs',
     'authorization',
     'products',
-    'rest_framework'
+    'rest_framework',
+    'django_minio_backend'
 ]
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=15),
@@ -123,3 +124,12 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 NON_FIELD_ERRORS_KEY = "detail"
+
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
+MINIO_PRIVATE_BUCKETS = ["private-bucket"]
+MINIO_PUBLIC_BUCKETS = ["public-bucket"]
+MINIO_ENDPOINT = "minio:9000"
+MINIO_EXTERNAL_ENDPOINT = "127.0.0.1:9000"
+MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
+MINIO_USE_HTTPS = False

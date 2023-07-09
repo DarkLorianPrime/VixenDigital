@@ -1,8 +1,11 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
+from catalogs.models import Organization
 from catalogs.serializers import CatalogSerializer, CategorySerializer, OrganizationSerializer
 from catalogs.service import Service
 from core.permissions import ReadOnly
@@ -45,67 +48,16 @@ class OrganizationViewSet(ModelViewSet):
     lookup_field = "slug"
     permission_classes = [IsAuthenticated | ReadOnly]
     serializer_class = OrganizationSerializer
+    queryset = Organization.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         instance = super().get_object()
-        if instance.maintainer == request.user:
+        if (instance.maintainer == request.user) | request.user.is_staff:
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         raise PermissionDenied()
-#
-# class FeaturesViewSet(ViewSet):
-#     def list(self, request, catalog, category):
-#         """
-#         Description:
-#         For a construction of the type: URL/core/category/features/
-#         For example: darklorian.space/Computers/Processors/features/
-#         Get all features specified in specified products
-#         ------
-#         Request action: GET
-#         ------
-#         :param:  core : slug:
-#             core in which there may be a category ↓
-#         :param: category : slug:
-#             category, in which we are looking for a product
-#         :return: List of features of the specified products
-#         """
-#         instance = service.get_category(name=category, catalog=catalog)
-#
-#         if instance is None:
-#             raise NotFound()
-#
-#         all_features = Features.objects.filter(category=instance)
-#         # NEED_SERIALIZER
-#         return Response(all_features.values('id', 'name', 'slug', 'required'))
-#
-#     def create(self, request, catalog, category):
-#         """
-#         Description:
-#         Creates a new product in this category
-#         ------
-#         Request Action: POST
-#         ------
-#         Raises:
-#         :raise An exception will be thrown if one of the parameters was not passed
-#         -----
-#         POST data (Parameters):
-#         :param: name : str
-#             Name of creating product.
-#         :param: required : bool
-#         :return:
-#             Response with name of created feature
-#         """
-#         request_data = request.POST.dict()
-#         request_data.update({"category": category, "catalog": catalog})
-#
-#         serialized = FeaturesSerializer(data=request_data)
-#         serialized.is_valid(raise_exception=True)
-#         serialized.save()
-#
-#         return Response(serialized.data, status=HTTP_201_CREATED)
-#
-#
+
 # class SearchViewset(ViewSet):
 #     def get(self, request, catalog, category):
 #         get_data = self.request.GET

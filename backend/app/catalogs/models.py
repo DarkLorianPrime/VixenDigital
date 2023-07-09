@@ -1,4 +1,5 @@
 from django.db import models
+from django_minio_backend import MinioBackend
 
 
 class Category(models.Model):
@@ -20,7 +21,7 @@ class Organization(models.Model):
     verified = models.BooleanField(default=False)
     description = models.TextField()
     slug = models.SlugField(blank=True)
-    logo = models.CharField(blank=True, null=True)
+    logo = models.FileField(storage=MinioBackend(bucket_name="private-bucket"))
 
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
