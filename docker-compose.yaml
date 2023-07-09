@@ -5,6 +5,17 @@ x-postgres-environment: &x-postgres-environment
   POSTGRES_NAME: ${POSTGRES_NAME}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+x-elastic-environment: &x-elastic-environment
+  ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+  ES_PORT: ${ELASTIC_PORT}
+  ELASTIC_PORT: ${ELASTIC_PORT}
+  ELASTIC_USER: ${ELASTIC_USER}
+  ELASTIC_HOST: ${ELASTIC_HOST}
+
+x-minio-environment: &x-minio-environment
+  MINIO_ROOT_USER: ${MINIO_USER}
+  MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+
 services:
   database:
     image: postgres:alpine
@@ -19,14 +30,37 @@ services:
     restart: always
     depends_on:
       - database
+      - elk
+      - minio
     ports:
       - "8000:8000"
     volumes:
       - "./backend/app/:/application"
     environment:
-      <<: *x-postgres-environment
+      <<: [ *x-postgres-environment, *x-elastic-environment ]
       SECURITY_TOKEN: ${SECURITY_TOKEN}
       PYTHONUNBUFFERED: 1
 
+  minio:
+    image: minio/minio
+    restart: always
+    volumes:
+      - miniodata:/minio
+    ports:
+      - "9001:9001"
+    command:
+      - server --console-address ":9001" /data
+  elk:
+    image: elasticsearch:8.8.1
+    ports:
+      - '9200:9200'
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      <<: *x-elastic-environment
+      transport.host: "localhost"
+
 volumes:
   pgdata:
+  esdata:
+  miniodata:
