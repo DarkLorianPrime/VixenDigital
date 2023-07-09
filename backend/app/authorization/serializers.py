@@ -32,7 +32,7 @@ class RegistrationSerializer(ModelSerializer):
     first_name = serializers.CharField(min_length=3, required=True)
     last_name = serializers.CharField(min_length=3, required=True)
     middle_name = serializers.CharField(min_length=3, required=False)
-    is_superuser = serializers.BooleanField(read_only=True)
+    is_staff = serializers.BooleanField(read_only=True)
 
     def validate(self, attrs):
         if not attrs["password"] == attrs.get("double_password"):
@@ -46,7 +46,7 @@ class RegistrationSerializer(ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ("username", "password", "double_password", "email", "first_name",
-                  "last_name", "middle_name", "is_superuser")
+                  "last_name", "middle_name", "is_staff")
 
     def create(self, validated_data):
         return self.Meta.model.objects.create_user(**validated_data)

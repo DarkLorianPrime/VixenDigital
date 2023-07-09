@@ -33,6 +33,3 @@ class UsersViewSet(ModelViewSet):
 
         return Response(users.data)
 
-
-class TokenViewSet(TokenObtainPairView):
-    _serializer_class = "authorization.serializers.TokenSerializer"

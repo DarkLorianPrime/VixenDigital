@@ -16,8 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+default_url = "api/v1/"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include("authorization.urls")),
-    path('', include('catalogs.urls'))
+    path(default_url, include("authorization.urls")),
+    path(default_url, include("products.urls")),
+    path(default_url, include('catalogs.urls'))
 ]

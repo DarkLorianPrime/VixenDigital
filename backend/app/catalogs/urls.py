@@ -1,16 +1,20 @@
-from django.urls import path
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 
-from catalogs.views import CatalogViewSet, Products, FeaturesViewSet, SearchViewset, CategoryViewSet
+from catalogs.routers import CategoryRouter
+from catalogs.views import CatalogViewSet, CategoryViewSet, OrganizationViewSet
 
-router = DefaultRouter()
-router.register(r"(?P<catalog>[0-9A-z-_]{1,128})", CategoryViewSet, basename="Category")
-router.register(r'', CatalogViewSet, basename='Catalog')
+organization_router = SimpleRouter()
+organization_router.register(r"brand/", OrganizationViewSet, basename="Organization")
+
+category_router = CategoryRouter()
+category_router.register(r"catalog/(?P<catalog>[0-9A-z-_]{1,128})", CategoryViewSet, basename="Category")
+category_router.register(r'catalog/', CatalogViewSet, basename='Catalog')
 
 urlpatterns = [
-    path('<str:catalog>/<str:category>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
-    path('<str:catalog>/<str:category>/features/', FeaturesViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('<str:catalog>/<str:category>/search/', SearchViewset.as_view({'get': 'get'}))
+    # path('<str:catalog>/<str:category>/', Products.as_view({'get': 'list', 'post': 'create'}), name='products'),
+    # path('<str:catalog>/<str:category>/features/', FeaturesViewSet.as_view({'get': 'list', 'post': 'create'})),
+    # path('<str:catalog>/<str:category>/search/', SearchViewset.as_view({'get': 'get'}))
 ]
 
-urlpatterns += router.urls
+urlpatterns += organization_router.urls
+urlpatterns += category_router.urls
