@@ -6,7 +6,7 @@ authors = ["darklorian <lolpokens@mail.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 django = "^4.2.2"
 djangorestframework = "^3.14.0"
 python-dotenv = "^1.0.0"
@@ -15,6 +15,7 @@ psycopg-binary = "^3.1.9"
 djangorestframework-simplejwt = "^5.2.2"
 httpx = "^0.24.1"
 django-minio-backend = "^3.5.0"
+pillow = "^10.0.0"
 
 
 [build-system]
