@@ -1,14 +1,13 @@
-from django.db.models import Q
 from rest_framework import status
-from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from catalogs.models import Organization
+from catalogs.models import Organization, Category
 from catalogs.serializers import CatalogSerializer, CategorySerializer, OrganizationSerializer
 from catalogs.service import Service
-from core.permissions import ReadOnly
+from core.permissions import ReadOnly, IsMaintainer, IsContributor
 
 service = Service()
 
@@ -18,15 +17,12 @@ class CategoryViewSet(ModelViewSet):
     lookup_field = "slug"
     permission_classes = [IsAdminUser | ReadOnly]
 
+    def get_queryset(self):
+        return self.request.category.categories
+
     def create(self, request, *args, **kwargs):
         values = request.data.dict()
-
-        catalog = service.get_catalog(slug=kwargs["catalog"])
-
-        if not catalog:
-            raise NotFound()
-
-        values["category"] = catalog.id
+        values["category"] = request.category.id
 
         serializer = self.get_serializer(data=values)
         serializer.is_valid(raise_exception=True)
@@ -46,17 +42,10 @@ class CatalogViewSet(ModelViewSet):
 
 class OrganizationViewSet(ModelViewSet):
     lookup_field = "slug"
-    permission_classes = [IsAuthenticated | ReadOnly]
+    permission_classes = [IsContributor | IsMaintainer | ReadOnly]
     serializer_class = OrganizationSerializer
     queryset = Organization.objects.all()
 
-    def destroy(self, request, *args, **kwargs):
-        instance = super().get_object()
-        if (instance.maintainer == request.user) | request.user.is_staff:
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        raise PermissionDenied()
 
 # class SearchViewset(ViewSet):
 #     def get(self, request, catalog, category):

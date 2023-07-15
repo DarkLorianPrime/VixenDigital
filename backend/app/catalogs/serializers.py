@@ -1,7 +1,9 @@
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.serializers import ModelSerializer
 
+from authorization.models import User
 from catalogs.models import Category, Organization
 
 from extras.slugifer import slugify
@@ -47,27 +49,50 @@ class CategorySerializer(CatalogSerializer):
 
 
 class OrganizationSerializer(ModelSerializer):
-    name = serializers.CharField(validators=[is_exist_organization])
+    name = serializers.CharField()
+    maintainer = serializers.CharField(default=None)
+    contributors = serializers.ListField(write_only=True)
+    logo = serializers.ImageField()
+    slug = serializers.SlugField(default=None)
 
     class Meta:
         model = Organization
         fields = "__all__"
 
-    def validate(self, attrs):
-        if attrs["logo"].content_type not in ["image/jpeg", "image/png","image/tiff"]:
-            raise ValidationError(detail={"logo": "the logo must be a picture"})
+    @property
+    def method(self):
+        return self.context["request"].method
 
-        return attrs
+    def validate_logo(self, image):
+        if self.method in ["PUT", "PATCH"]:
+            self.instance.logo.delete()
 
-    def create(self, validated_data: dict):
-        contributors = validated_data.pop("contributors", [])
+        return image
 
-        validated_data.update({"maintainer": self.context["request"].user,
-                               "slug": slugify(validated_data['name'])})
+    def validate_name(self, name):
+        self.context["name"] = name
 
-        organization = Organization.objects.create(**validated_data)
+        instance: Organization | dict = self.instance or {}
+        instance_name = getattr(instance, "name", None)
+
+        if instance_name == name:
+            return name
         
-        for contributor in contributors:
-            organization.contributors.add(contributor)
+        if instance_name is None:
+            if Organization.objects.filter(name=name).exists():
+                raise ValidationError('already exists', code=409)
 
-        return organization
+        return name
+
+    def validate_maintainer(self, _):
+        user = self.context["request"].user
+        if self.method == "POST":
+            return user
+
+        return Organization.objects.filter(Q(maintainer=user) | Q(contributors=user)).first().maintainer
+
+    def validate_slug(self, _):
+        return slugify(self.context["name"])
+
+    def validate_contributors(self, contributors):
+        return User.objects.filter(id__in=contributors).all()
