@@ -44,6 +44,15 @@ class Index:
         self.remove_index()
         self.create_index()
 
+    def update_index(self):
+        result = self.base.put(f"{self.index}/_mapping",
+                               json={"properties": self.structure})
+
+        if result.status_code == 404:
+            return {"status": 404}
+
+        return result.json()
+
 
 class Aggregation:
     def __init__(self, search):
@@ -67,21 +76,43 @@ class Many:
 
 class Result:
     def __init__(self, result):
-        self.result = result
+        self.result_ = result
         self.source_ = {}
-        self.aggregation = {}
+        self.aggregation_ = {}
+
+    @property
+    def source_many(self):
+        self.parse()
+        return self.source_
+    @property
+    def source(self):
+        self.parse()
+        if len(self.source_) == 1:
+            return self.source_[0]
+
+        return self.source_
+
+    @property
+    def result(self):
+        self.parse()
+        return self.result_
+
+    @property
+    def aggregation(self):
+        self.parse()
+        return self.aggregation_
 
     def parse(self):
-        if self.result.get("status") == 400:
-            raise Exception(self.result)
-        hits = self.result.get("hits")
+        if self.result_.get("status") == 400:
+            raise Exception(self.result_)
+        hits = self.result_.get("hits")
         if not hits:
             return {}
 
-        self.source_ = [element["_source"] for element in self.result["hits"]["hits"]]
-        self.aggregation = self.result.get("aggregation")
+        self.source_ = [{**element["_source"], "id": element["_id"]} for element in self.result_["hits"]["hits"]]
+        self.aggregation_ = self.result_.get("aggregation")
 
-        return self.result["hits"], self.result.get("aggregations")
+        return self.result_["hits"], self.result_.get("aggregations")
 
 
 class Search:
@@ -94,9 +125,17 @@ class Search:
         self.size_param = {}
         self.return_params = []
 
+    @property
+    def body_params(self):
+        return {**self.aggs, **self.size_param, **self.sort_params}
+
     def return_(self, *args):
         params = []
         for i in args:
+            if len(i.split(".")) > 1:
+                params.append(i)
+                continue
+
             params.append(f"{default_path}.{i}")
 
         self.return_params = {"filter_path": ",".join(params)}
@@ -119,7 +158,7 @@ class Search:
         return result.json()
 
     def all(self):
-        body = {**self.size_param, "query": {"match_all": {}}, **self.aggs, **self.sort_params}
+        body = {"query": {"match_all": {}}, **self.body_params}
         params = self.return_params
         return Result(self.post(json=body, params=params))
 
@@ -129,8 +168,17 @@ class Search:
         for key, element in kwargs.items():
             key, element = key, element
 
-        return Result(self.get({**self.size_param, **self.aggs, **self.sort_params,
-                                "script_fields": {key: {"script": {"source": element}}}}))
+        return Result(self.get({**self.body_params, "script_fields": {key: {"script": {"source": element}}}}))
+
+    def suggest(self, **kwargs):
+        key, element = None, None
+
+        for key, element in kwargs.items():
+            key, element = key, element
+
+        body = {**self.body_params, "suggest": {"result_suggest": {"text": element, "term": {"field": "key"}}}}
+        params = self.return_params
+        return Result(self.post(json=body, params=params))
 
     def filter(self, **kwargs):
         filter_params = []
@@ -138,7 +186,7 @@ class Search:
         for key, element in kwargs.items():
             filter_params.append({"term": {key: element}})
 
-        body = {**self.size_param, "query": {"bool": {"filter": filter_params}}, **self.aggs, **self.sort_params}
+        body = {**self.body_params, "query": {"bool": {"filter": filter_params}}}
         params = self.return_params
         return Result(self.post(json=body, params=params))
 
@@ -146,7 +194,8 @@ class Search:
         filter_params = []
         for key, element in kwargs.items():
             filter_params.append({"term": {key: element}})
-        body = {**self.size_param, **self.aggs, **self.sort_params,
+
+        body = {**self.body_params,
                 "query": {"bool": {"must": [{"exists": {"field": exist_field}, "filter": filter_params}]}}}
         return Result(self.post(json=body))
 
@@ -155,13 +204,24 @@ class Search:
             return None
 
         params = list(*kwargs.items())
-        return Result(self.post({**self.size_param, "query":
-            {"query_string":
-                 {"query": params[1], "default_field": params[0]}}, **self.aggs, **self.sort_params}))
+        return Result(self.post(
+            {**self.body_params, "query": {"query_string": {"query": params[1], "default_field": params[0]}}}))
 
     def sort(self, **sort_fields):
         for key, value in sort_fields:
             self.sort_params["sort"].append({key: value})
+
+    def delete(self, **kwargs):
+        filter_params = []
+        for key, element in kwargs.items():
+            filter_params.append({"term": {key: element}})
+
+        base = {"query": {"bool": {"filter": filter_params}}}
+        return Result(self.base.post(f"{self.index}/_delete_by_query", json=base).json())
+
+    def update(self, doc_id, **kwargs):
+        body = {"doc": kwargs}
+        return Result(self.base.post(f"{self.index}/_update/{doc_id}", json=body).json())
 
 
 class Model:
