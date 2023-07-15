@@ -1,17 +1,15 @@
-from django.http import QueryDict
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from catalogs.models import Category
 from core.permissions import ReadOnly
 from products.models import Product
 from products.serializers import ProductsSerializer, FeatureSerializer
 from products.service import Service
-import ast
 
 product = Product()
 service = Service()
@@ -19,17 +17,6 @@ service = Service()
 
 class ProductsViewSet(ViewSet):
     serializer_class = ProductsSerializer
-
-    def get_queryset(self):
-        kwargs = self.kwargs
-        category_instance: Category = Category.objects.filter(slug=kwargs["category"],
-                                                              category__slug=kwargs["catalog"],
-                                                              category__category=None).first()
-
-        if category_instance is None:
-            raise NotFound()
-
-        product.objects.filter(category=category_instance.slug)
 
     def list(self, request, *args, **kwargs):
         """
@@ -46,10 +33,7 @@ class ProductsViewSet(ViewSet):
             category, in which we are looking for a product
         :return: List of products
         """
-        kwargs = self.kwargs
-        category_instance: Category = Category.objects.filter(slug=kwargs["category"],
-                                                              category__slug=kwargs["catalog"],
-                                                              category__category=None).first()
+        category_instance: Category = service.get_category(**self.kwargs)
 
         if category_instance is None:
             raise NotFound()
@@ -96,7 +80,8 @@ class ProductsViewSet(ViewSet):
 
         features_params = service.get_user_features(values)
         required_params = service.get_required_features(category_id=category.id)
-        filter(lambda x: ..., required_params)
+        print(required_params, features_params)
+        # filter(lambda x: ..., required_params)
         serializer = self.serializer_class(data=values)
         serializer.is_valid(raise_exception=True)
 
@@ -117,36 +102,45 @@ class ProductsViewSet(ViewSet):
                 required_features.remove(features_name)
             features_json[features_name] = value_name
 
-        if len(required_features) > 0:
+        if required_features:
             return Response({'error': 'Ты не указал обязательные features (slug):', 'arguments': required_features})
 
         new_product.features = features_json
         new_product.save()
 
-        # NEED_SERIALIZER !!!!
+        # NEED_SERIALIZER !! !!
         return Response([{'name': new_product.validated_data["name"], 'features': features_json}])
 
 
-class FeaturesViewSet(ViewSet):
+class FeaturesViewSet(ModelViewSet):
     permission_classes = [IsAdminUser | ReadOnly]
     serializer_class = FeatureSerializer
+    lookup_field = "name"
+
+    def get_object(self):
+        category_id = self.request.category.id
+        feature = service.get_feature(category_id, **{self.lookup_field: self.kwargs["name"]})
+
+        if not feature:
+            raise NotFound()
+
+        return feature
 
     def list(self, request, *args, **kwargs):
-        category = service.get_category(**self.kwargs)
-
-        if category is None:
-            raise NotFound()
-
-        features = service.get_all_features(category_id=category.id)
-        return Response(features)
+        features = service.get_all_features(category_id=request.category.id)
+        serializer = self.serializer_class(features, many=True)
+        return Response(serializer.data)
 
     def create(self, request: Request, *args, **kwargs):
-        category = service.get_category(**self.kwargs)
-
-        if category is None:
-            raise NotFound()
-
-        serializer = self.serializer_class(data=request.data, context={"category_id": category.id})
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=HTTP_201_CREATED)
+
+    def perform_destroy(self, instance):
+        service.delete_feature(instance)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"category_id": self.request.category.id})
+        return context

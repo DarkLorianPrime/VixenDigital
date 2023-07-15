@@ -3,9 +3,9 @@ from core.backend.elasticbackend import Model
 
 
 class FeatureObject:
-    name = KeywordField()
-    value = KeywordField()
-    feature_id = IntegerField()
+    display_name = KeywordField()
+    values = KeywordField()
+    slug = KeywordField()
 
 
 class Product(Model):
@@ -25,7 +25,9 @@ class Product(Model):
 
 
 class Feature(Model):
+    display_name = KeywordField()
     name = KeywordField()
     values = TextField()
     category = KeywordField()
+    many = BooleanField()
     required = BooleanField()
