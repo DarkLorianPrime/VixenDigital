@@ -43,15 +43,3 @@ class CategoryRouter(SimpleRouter):
             initkwargs={}
         ),
     ]
-
-
-class OrganizationRouter(SimpleRouter):
-    routes = [
-        Route(
-            url=r'^{prefix}/products{trailing_trash}$',
-            name='{basename}-products',
-            mapping={"get": "list"},
-            detail=False,
-            initkwargs={}
-        )
-    ]

@@ -1,30 +1,18 @@
-from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.serializers import ModelSerializer
 
-from authorization.models import User
 from catalogs.models import Category, Organization
+from catalogs.repositories import CategoryRepository, OrganizationRepository
 
 from extras.slugifer import slugify
 
-
-def is_exist_category(value: str, category=None) -> bool:
-    if Category.objects.filter(name=value, category=category).exists():
-        raise ValidationError({"category": 'already exists'}, code=409)
-
-    return False
-
-
-def is_exist_organization(name: str) -> bool:
-    if Organization.objects.filter(name=name).exists():
-        raise ValidationError('already exists', code=409)
-
-    return False
+categories_repo = CategoryRepository()
+organizations_repo = OrganizationRepository()
 
 
 class CatalogSerializer(ModelSerializer):
-    name = serializers.CharField(validators=[is_exist_category], max_length=127, min_length=1)
+    name = serializers.CharField(validators=[categories_repo.is_exist_category], max_length=127, min_length=8)
 
     class Meta:
         model = Category
@@ -32,19 +20,21 @@ class CatalogSerializer(ModelSerializer):
 
     def create(self, validated_data):
         validated_data["slug"] = slugify(validated_data['name'])
-        return Category.objects.create(**validated_data)
+        return categories_repo.create_category(**validated_data)
 
 
 class CategorySerializer(CatalogSerializer):
+    category = serializers.SlugField(default=None)
+
     class Meta:
         model = Category
         fields = ["name", "category", "slug"]
 
-    def validate(self, attrs):
-        if not attrs.get("category"):
-            raise NotFound()
+    def validate_category(self, _):
+        return self.context["category_id"]
 
-        is_exist_category(attrs["name"], attrs["category"])
+    def validate(self, attrs):
+        categories_repo.is_exist_category(attrs["name"], attrs["category"])
         return attrs
 
 
@@ -54,6 +44,7 @@ class OrganizationSerializer(ModelSerializer):
     contributors = serializers.ListField(write_only=True)
     logo = serializers.ImageField()
     slug = serializers.SlugField(default=None)
+    verified = serializers.BooleanField(default=False)
 
     class Meta:
         model = Organization
@@ -63,9 +54,15 @@ class OrganizationSerializer(ModelSerializer):
     def method(self):
         return self.context["request"].method
 
+    def validate_verified(self, verified):
+        if self.context["request"].user.is_staff:
+            return verified
+
+        return False
+
     def validate_logo(self, image):
         if self.method in ["PUT", "PATCH"]:
-            self.instance.logo.delete()
+            organizations_repo.organization_logo_delete(instance=self.instance)
 
         return image
 
@@ -77,22 +74,18 @@ class OrganizationSerializer(ModelSerializer):
 
         if instance_name == name:
             return name
-        
-        if instance_name is None:
-            if Organization.objects.filter(name=name).exists():
-                raise ValidationError('already exists', code=409)
 
-        return name
+        return organizations_repo.is_exist_organization(name=name)
 
     def validate_maintainer(self, _):
         user = self.context["request"].user
         if self.method == "POST":
             return user
 
-        return Organization.objects.filter(Q(maintainer=user) | Q(contributors=user)).first().maintainer
+        return organizations_repo.get_maintainer(user)
 
     def validate_slug(self, _):
         return slugify(self.context["name"])
 
     def validate_contributors(self, contributors):
-        return User.objects.filter(id__in=contributors).all()
+        return organizations_repo.get_contributors(contributors)
