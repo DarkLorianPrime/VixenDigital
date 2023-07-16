@@ -6,21 +6,23 @@ class FeatureObject:
     display_name = KeywordField()
     values = KeywordField()
     slug = KeywordField()
+    unit = TextField(null=True)
 
 
 class Product(Model):
-    name = TextField()
+    name = KeywordField()
     description = TextField()
     category = IntegerField()
-    slug = TextField()
+    slug = KeywordField()
     price = IntegerField()
     count = IntegerField()
     created = DateField()
     updated = DateField()
     visible = BooleanField()
-    owner = IntegerField()
-    views = IntegerField()
-    likes = IntegerField()
+    owner = IntegerField()  # ORGANIZATION
+    views = IntegerField(null=True)
+    likes = IntegerField(null=True)
+    article = KeywordField()
     features = ObjectField(FeatureObject)
 
 
@@ -31,3 +33,4 @@ class Feature(Model):
     category = KeywordField()
     many = BooleanField()
     required = BooleanField()
+    unit = TextField(null=True)

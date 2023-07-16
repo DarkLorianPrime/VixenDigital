@@ -20,4 +20,4 @@ class IsMaintainer(permissions.BasePermission):
 class IsContributor(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
         organization = Organization.objects.filter(contributors=request.user.id)
-        return (organization.exists() & (request.method in CONTRIBUTOR_METHODS)) | request.user.is_staff
+        return (organization.exists() and (request.method in CONTRIBUTOR_METHODS)) or request.user.is_staff
