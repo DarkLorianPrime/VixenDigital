@@ -6,10 +6,10 @@ from rest_framework.viewsets import ModelViewSet
 
 from catalogs.models import Organization, Category
 from catalogs.serializers import CatalogSerializer, CategorySerializer, OrganizationSerializer
-from catalogs.service import Service
+from catalogs.repositories import CategoryRepository
 from core.permissions import ReadOnly, IsMaintainer, IsContributor
 
-service = Service()
+service = CategoryRepository()
 
 
 class CategoryViewSet(ModelViewSet):
@@ -17,12 +17,19 @@ class CategoryViewSet(ModelViewSet):
     lookup_field = "slug"
     permission_classes = [IsAdminUser | ReadOnly]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"category_id": self.request.category.id})
+        return context
+
     def get_queryset(self):
         return self.request.category.categories
 
     def create(self, request, *args, **kwargs):
-        values = request.data.dict()
-        values["category"] = request.category.id
+        values = request.data
+        if values:
+            values = values.dict()
+
 
         serializer = self.get_serializer(data=values)
         serializer.is_valid(raise_exception=True)
@@ -42,10 +49,9 @@ class CatalogViewSet(ModelViewSet):
 
 class OrganizationViewSet(ModelViewSet):
     lookup_field = "slug"
-    permission_classes = [IsContributor | IsMaintainer | ReadOnly]
+    permission_classes = [IsAdminUser | IsContributor | IsMaintainer | ReadOnly]
     serializer_class = OrganizationSerializer
     queryset = Organization.objects.all()
-
 
 # class SearchViewset(ViewSet):
 #     def get(self, request, catalog, category):
