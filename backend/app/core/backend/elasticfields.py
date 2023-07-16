@@ -1,6 +1,9 @@
 class Field:
     name = None
 
+    def __init__(self, null: bool = False):
+        self.null = null
+
 
 class TextField(Field):
     name = "text"

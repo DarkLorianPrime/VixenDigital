@@ -4,9 +4,9 @@ from django.urls import resolve
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from catalogs.service import Service
+from catalogs.repositories import CategoryRepository
 
-service = Service()
+service = CategoryRepository()
 
 
 class CategoryMiddleware:
@@ -16,12 +16,14 @@ class CategoryMiddleware:
     def __call__(self, request: WSGIRequest, *args, **kwargs):
         _, _, kwargs = resolve(request.path)
         if kwargs:
-            catalog = kwargs.get("catalog")
-            category = kwargs.get("category")
+            catalog: str = kwargs.get("catalog")
+            category: str = kwargs.get("category")
+            if not catalog and not category:
+                response = self.get_response(request)
 
-            handler = service.get_category
-            if not category:
-                handler = service.get_catalog
+                return response
+
+            handler = service.get_catalog if not category else service.get_category
 
             category = handler(catalog, category)
 

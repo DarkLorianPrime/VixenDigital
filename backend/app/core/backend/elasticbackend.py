@@ -84,6 +84,7 @@ class Result:
     def source_many(self):
         self.parse()
         return self.source_
+
     @property
     def source(self):
         self.parse()
@@ -105,11 +106,12 @@ class Result:
     def parse(self):
         if self.result_.get("status") == 400:
             raise Exception(self.result_)
+
         hits = self.result_.get("hits")
         if not hits:
             return {}
 
-        self.source_ = [{**element["_source"], "id": element["_id"]} for element in self.result_["hits"]["hits"]]
+        self.source_ = [{**element["_source"], "id": element.get("_id", None)} for element in self.result_["hits"]["hits"]]
         self.aggregation_ = self.result_.get("aggregation")
 
         return self.result_["hits"], self.result_.get("aggregations")
@@ -188,6 +190,7 @@ class Search:
 
         body = {**self.body_params, "query": {"bool": {"filter": filter_params}}}
         params = self.return_params
+
         return Result(self.post(json=body, params=params))
 
     def exists(self, exist_field, **kwargs):
@@ -241,11 +244,16 @@ class Model:
         self.__params = {}
         self.index = Index(self.base, self._index, self.get_structure())
 
-    def get_structure(self):
+    def get_structure(self, get_null: bool = False):
         for key, element in self.__class__.__dict__.items():
             if isinstance(element, Field):
                 if isinstance(element.name, str):
-                    self.__params[key] = {"type": element.name}
+
+                    query = {"type": element.name}
+                    if get_null:
+                        query["null"] = element.null
+
+                    self.__params[key] = query
                 else:
                     self.__params[key] = element.name
         return self.__params
@@ -259,12 +267,13 @@ class Model:
         return Search(self.base, self._index, self.get_structure())
 
     def __call__(self, **kwargs):
-        need_items = self.get_structure()
+        need_items = self.get_structure(True)
         elements = {}
         for key, element in need_items.items():
             new_element = kwargs.pop(key, None)
-            if new_element is None:
+            if new_element is None and not element.get("null"):
                 raise Exception(f"\"{key}\" - обязательный параметр")
+
             regex = ""
             if element.get("type") == "text":
                 regex = r"^[\S _-]+$"
@@ -274,7 +283,7 @@ class Model:
 
             d = re.match(regex, str(new_element))
 
-            if not d:
+            if not d and not element.get("null"):
                 raise Exception(f"У поля \"{key}\" должен быть тип {element.get('type')}")
 
             elements[key] = new_element
