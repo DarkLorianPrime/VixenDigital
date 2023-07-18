@@ -2,7 +2,7 @@ import datetime
 import random
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import CharField, SlugField, IntegerField, BooleanField, ListField
+from rest_framework.fields import CharField, SlugField, IntegerField, BooleanField, ListField, DateTimeField
 from rest_framework.serializers import Serializer
 
 from catalogs.repositories import OrganizationRepository
@@ -44,6 +44,9 @@ class FullInfoProductSerializer(Serializer):
     likes = ListField(default=[])
     features = ListField(default=None)
     article = IntegerField(default=None)
+    created = DateTimeField()
+    updated = DateTimeField()
+    discount = IntegerField(default=0)
 
     def validate_category(self, _):
         return self.context["category_id"]
