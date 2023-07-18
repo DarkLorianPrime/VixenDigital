@@ -8,3 +8,6 @@ class Service:
 
     def get_users(self, exclude: str) -> QuerySet:
         return self.model.objects.filter(~Q(username=exclude)).all()
+
+    def is_user_exists(self, username, email):
+        return self.model.objects.filter(Q(username=username) | Q(email=email)).exists()
