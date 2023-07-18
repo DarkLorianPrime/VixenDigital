@@ -21,7 +21,9 @@
           run: |
             pip install poetry
             poetry config virtualenvs.create false
+            ls
             cd /home/runner/work/VixenDigital/VixenDigital
+            ls
             poetry install --no-root
 
         - name: init project
