@@ -3,7 +3,6 @@ import re
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.models import update_last_login
 from django.core.validators import RegexValidator
-from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
@@ -12,9 +11,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
 from authorization.models import User
+from authorization.service import Service
 
 username_validator = RegexValidator(r"^[a-zA-Z0-9_\-]{3,16}$")
 password_validator = RegexValidator(r"^.*(?=.{8,32})(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#$%@&?\"]).*$")
+
+service = Service()
 
 
 class UserSerializer(ModelSerializer):
@@ -38,7 +40,7 @@ class RegistrationSerializer(ModelSerializer):
         if not attrs["password"] == attrs.get("double_password"):
             raise ValidationError(detail={"password": "password and double password is not equal"}, code=400)
 
-        if self.Meta.model.objects.filter(Q(username=attrs["username"]) | Q(email=attrs["email"])).exists():
+        if service.is_user_exists(email=attrs["email"], username=attrs["username"]):
             raise ValidationError(detail={"username": "this email or username already exists"}, code=400)
 
         return attrs
@@ -49,6 +51,7 @@ class RegistrationSerializer(ModelSerializer):
                   "last_name", "middle_name", "is_staff")
 
     def create(self, validated_data):
+        validated_data.pop("double_password")
         return self.Meta.model.objects.create_user(**validated_data)
 
 
@@ -60,7 +63,9 @@ class TokenSerializer(TokenObtainPairSerializer):
         }
 
         if re.search(r"^\S+@\S+\.\S+$", username):
-            username = User.objects.filter(email=username).first().username
+            username = User.objects.filter(email=username).first()
+            if username:
+                username = username.username
 
         authenticate_kwargs["username"] = username
 
