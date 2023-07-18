@@ -21,17 +21,9 @@
           run: |
             pip install poetry
             poetry config virtualenvs.create false
-            ls
             cd /home/runner/work/VixenDigital/VixenDigital
-            ls
             poetry install --no-root
 
-        - name: init project
+        - name: run docker-compose
           run: |
-            python manage.py migrate
-            python manage.py init-elastic
-            python manage.py init-cities
-
-        - name: run test
-          run: |
-            python manage.py test
+            docker-compose up -d
