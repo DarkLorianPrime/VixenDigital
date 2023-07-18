@@ -2,6 +2,7 @@
 python manage.py migrate
 python manage.py init_elastic
 python manage.py initialize_buckets
+echo "$TEST"
 if [ "$TEST" == "true" ]; then
   python manage.py test
 else
