@@ -11,4 +11,4 @@ RUN poetry install --no-root
 ADD entrypoint.sh /
 RUN ["chmod", "+x", "/entrypoint.sh"]
 ENV TEST_DATA="$TEST"
-ENTRYPOINT ["/entrypoint.sh $TEST_DATA"]
+ENTRYPOINT ["/entrypoint.sh", "$TEST_DATA"]
