@@ -29,3 +29,5 @@
             mv example.env .env
             echo "TEST=true" >> .env
             docker-compose up -d
+            sleep 30s
+            docker-compose logs
