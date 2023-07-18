@@ -68,3 +68,6 @@ class TestRegistration(TestCase):
         response = self.client.post(f"{base_url}token/", data=SECOND_USER)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data.get("detail"), "No active account found with the given credentials")
+
+    def test_special_raise(self):
+        raise Exception("oh, no!")
