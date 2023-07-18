@@ -21,7 +21,7 @@
           run: |
             pip install poetry
             poetry config virtualenvs.create false
-            cd /home/runner/work/VixenDigital/VixenDigital
+            cd backend/app/
             poetry install --no-root
 
         - name: run docker-compose
