@@ -9,6 +9,8 @@
       name: run_django_tests
       steps:
         - uses: actions/checkout@v3
+          with:
+            ref: dev
 
         - name: install python
           uses: actions/setup-python@v3
