@@ -21,6 +21,7 @@
           run: |
             pip install poetry
             poetry config virtualenvs.create false
+            cd DigitalVixen
             poetry install --no-root
 
         - name: init project
