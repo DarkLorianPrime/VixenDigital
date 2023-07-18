@@ -66,7 +66,7 @@ services:
     volumes:
       - esdata:/usr/share/elasticsearch/data
     environment:
-      xpack.security.enabled: false
+      xpack.security.enabled: "false"
       <<: *x-elastic-environment
       transport.host: "localhost"
 
@@ -80,7 +80,7 @@ services:
     volumes:
       - kibanadata:/usr/share/kibana/config/
     environment:
-      XPACK_SECURITY_ENABLED: false
+      XPACK_SECURITY_ENABLED: "false"
       <<: *x-elastic-environment
       ELASTICSEARCH_HOSTS: '["http://elk:9200/"]'
 
