@@ -27,4 +27,5 @@
         - name: run docker-compose
           run: |
             mv example.env .env
+            echo "TEST=true" >> .env
             docker-compose up -d
