@@ -2,7 +2,13 @@
 python manage.py migrate
 python manage.py init_elastic
 python manage.py initialize_buckets
-echo "$TEST"
+echo "FTG_TEST: $TEST"
+
+until curl http://elk:9200; do
+  echo "not working..."
+  sleep 1
+done
+
 if [ "$TEST" == "true" ]; then
   python manage.py test
 else

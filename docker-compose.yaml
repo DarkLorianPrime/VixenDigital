@@ -31,22 +31,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  backend:
-    build: backend
-    restart: always
-    depends_on:
-      - database
-      - elk
-      - minio
-    ports:
-      - "8000:8000"
-    volumes:
-      - "./backend/app/:/application"
-    environment:
-      <<: [ *x-postgres-environment, *x-elastic-environment, *x-minio-environment ]
-      SECURITY_TOKEN: ${SECURITY_TOKEN}
-      PYTHONUNBUFFERED: 1
-
   minio:
     image: minio/minio
     restart: always
@@ -91,6 +75,22 @@ services:
       - rabbitmqdata:/bitnami/rabbitmq/mnesia
     environment:
       <<: *x-rabbitmq-environment
+
+  backend:
+    build: backend
+    restart: always
+    depends_on:
+      - database
+      - elk
+      - minio
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./backend/app/:/application"
+    environment:
+      <<: [ *x-postgres-environment, *x-elastic-environment, *x-minio-environment ]
+      SECURITY_TOKEN: ${SECURITY_TOKEN}
+      PYTHONUNBUFFERED: 1
 
 volumes:
   pgdata:
