@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -225,6 +226,18 @@ class Search:
     def update(self, doc_id, **kwargs):
         body = {"doc": kwargs}
         return Result(self.base.post(f"{self.index}/_update/{doc_id}", json=body).json())
+
+    def bulk_create(self, parameters):
+        update_list = []
+        header = {"Content-Type": "application/json"}
+        for i in parameters:
+            index = {"index": {"_index": self.index}}
+            update_list.append(json.dumps(index))
+            update_list.append(json.dumps(i))
+
+        bulk_payload = '\n'.join(update_list) + '\n'
+
+        return Result(self.base.post(f"_bulk", data=bulk_payload, headers=header).json())
 
 
 class Model:

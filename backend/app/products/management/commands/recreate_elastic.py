@@ -16,3 +16,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.get_classes()
+        return
