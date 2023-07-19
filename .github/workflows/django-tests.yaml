@@ -30,5 +30,5 @@
             mv example.env .env
             echo "PG_PA: $(<'.env' )" 
             docker-compose up -d
-            sleep 60
-            docker-compose logs
+            sleep 120
+            docker-compose logs backend

@@ -10,7 +10,7 @@ done
 python manage.py migrate
 python manage.py init_elastic
 python manage.py initialize_buckets
-echo
+
 if [ "$TEST" = "yes" ]; then
   python manage.py test
 else
