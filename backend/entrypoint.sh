@@ -1,6 +1,4 @@
 #!/bin/bash
-set -ex
-exec "$@"
 
 echo "FTG_TEST: $1, $0, $TEST"
 
