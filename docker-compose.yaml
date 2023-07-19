@@ -77,7 +77,10 @@ services:
       <<: *x-rabbitmq-environment
 
   backend:
-    build: backend
+    build:
+      context: backend
+      args:
+        TEST: ${TEST}
     restart: always
     depends_on:
       - database
@@ -91,7 +94,6 @@ services:
       <<: [ *x-postgres-environment, *x-elastic-environment, *x-minio-environment ]
       SECURITY_TOKEN: ${SECURITY_TOKEN}
       PYTHONUNBUFFERED: 1
-
 volumes:
   pgdata:
   esdata:

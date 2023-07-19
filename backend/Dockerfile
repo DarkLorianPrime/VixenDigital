@@ -1,7 +1,7 @@
 FROM python:3.11-slim-buster
 
 RUN pip install poetry
-
+ARG TEST
 COPY app /application
 WORKDIR /application
 
@@ -10,6 +10,4 @@ RUN poetry install --no-root
 
 ADD entrypoint.sh /
 RUN ["chmod", "+x", "/entrypoint.sh"]
-ENV TEST_DATA $TEST
-ENV BIG_DATA "BIG"
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "$TEST"]

@@ -1,9 +1,7 @@
 #!/bin/bash
 
 
-echo "FTG_TEST: $MINIO_PORT"
-echo "FTG_TEST: $TEST_DATA"
-echo "FTG_TEST: $BIG_DATA"
+echo "FTG_TEST: $1, $0"
 
 apt-get -y update;
 apt-get -y install curl
