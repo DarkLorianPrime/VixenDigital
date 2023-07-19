@@ -1,8 +1,6 @@
 #!/bin/bash
 
-echo "FTG_TEST: $1, $0, $TEST"
-
-apt-get -y update;E
+apt-get -y update;
 apt-get -y install curl
 until curl http://elk:9200; do
   echo "not working..."
