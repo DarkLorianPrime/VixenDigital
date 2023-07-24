@@ -1,0 +1,1591 @@
+openapi: 3.0.3
+info:
+  title: DigitalVixen
+  version: 1.5.0
+  description: DigitalVixen - не просто магазин бытовой техники.
+paths:
+  /api/v1/catalog/:
+    get:
+      operationId: catalog_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCatalogList'
+          description: ''
+    post:
+      operationId: catalog_create
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: ''
+  /api/v1/catalog/{catalog}/:
+    get:
+      operationId: catalog_list_2
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1,128}$
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryList'
+          description: ''
+    post:
+      operationId: catalog_create_2
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1,128}$
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/v1/catalog/{catalog}/{category}:
+    get:
+      operationId: catalog_list_3
+      description: |-
+        Description:
+        For a construction of the type: URL/core/category
+        For example: darklorian.space/Computers/Processors
+        Get all products specified in specified category
+        ------
+        Request action: GET
+        ------
+        :param:  core : slug:
+            core in which there may be a category ↓
+        :param: category : slug:
+            category, in which we are looking for a product
+        :return: List of products
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSmallInfoProductList'
+          description: ''
+    post:
+      operationId: catalog_create_3
+      description: |-
+        Description:
+        Creates a new product in this category
+        ------
+        Request Action: POST
+        ------
+        Raises:
+        :raise An exception will be thrown if one of the parameters was not passed
+        -----
+        POST data (Parameters):
+        :param: name : str
+            Name of creating product.
+        :param: category : model.id
+            An unspecified parameter.
+        :param: (Many) features : many args
+            Features from the features list.
+        :param: description : str
+            Information about this product
+        :param: slug : slug
+            An unspecified parameter.
+        :param: price : int
+            Price in rubles
+        :param: stock : int
+            quantity of goods in stock
+        :return:
+            Response with name of created product
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullInfoProduct'
+          description: ''
+  /api/v1/catalog/{catalog}/{category}{slug}/:
+    get:
+      operationId: catalog_retrieve
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullInfoProduct'
+          description: ''
+    put:
+      operationId: catalog_update
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FullInfoProduct'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullInfoProduct'
+          description: ''
+    patch:
+      operationId: catalog_partial_update
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFullInfoProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFullInfoProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFullInfoProduct'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullInfoProduct'
+          description: ''
+    delete:
+      operationId: catalog_destroy
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/catalog/{catalog}/{category}features/:
+    get:
+      operationId: catalog_features_list
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFeatureList'
+          description: ''
+    post:
+      operationId: catalog_features_create
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feature'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Feature'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Feature'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+          description: ''
+  /api/v1/catalog/{catalog}/{category}features/{name}/:
+    get:
+      operationId: catalog_features_retrieve
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+          description: ''
+    put:
+      operationId: catalog_features_update
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feature'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Feature'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Feature'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+          description: ''
+    patch:
+      operationId: catalog_features_partial_update
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFeature'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFeature'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFeature'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+          description: ''
+    delete:
+      operationId: catalog_features_destroy
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1, 128}$
+        required: true
+      - in: path
+        name: category
+        schema:
+          type: string
+          pattern: ^[a-z0-9]+$
+        required: true
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/catalog/{catalog}/{slug}/:
+    put:
+      operationId: catalog_update_2
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1,128}$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: catalog_partial_update_2
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1,128}$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: catalog_destroy_2
+      parameters:
+      - in: path
+        name: catalog
+        schema:
+          type: string
+          pattern: ^[0-9A-z-_]{1,128}$
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/catalog/{slug}/:
+    put:
+      operationId: catalog_update_3
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Catalog'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: ''
+    patch:
+      operationId: catalog_partial_update_3
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCatalog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCatalog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCatalog'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: ''
+    delete:
+      operationId: catalog_destroy_3
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/catalog/brand/:
+    get:
+      operationId: catalog_brand_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationList'
+          description: ''
+    post:
+      operationId: catalog_brand_create
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/v1/catalog/brand/{slug}/:
+    get:
+      operationId: catalog_brand_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    put:
+      operationId: catalog_brand_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    patch:
+      operationId: catalog_brand_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    delete:
+      operationId: catalog_brand_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/registration/:
+    post:
+      operationId: Создание аккаунта
+      description: Создает аккаунт по переданным параметрам
+      tags:
+      - Аутентификация
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Registration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Registration'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registration'
+          description: ''
+  /api/v1/token/:
+    post:
+      operationId: Access аутентификация
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - Аутентификация
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Token'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Token'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: ''
+  /api/v1/token/refresh:
+    post:
+      operationId: Refresh аутентификация
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - Аутентификация
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: Получить список всех пользователей
+      description: Позволяет получить список пользователей, их роли и id. Запросивший
+        в списке отсутствует.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Страница, которая будет отображена. Если страница пустая - будет
+          возвращено 404
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: 'Позволяет найти вхождение переданной строки в: username, first_name,
+          last_name'
+      - in: query
+        name: sort
+        schema:
+          type: integer
+        description: Параметр для сортировки. Перед параметром обязательно указывается
+          '+' или '-'
+        examples:
+          ОтсортированоПоIdВПорядкеВозрастания:
+            value: +id
+            summary: Отсортировано по id в порядке возрастания
+          СначалаСотрудникиМагазина:
+            value: -is_staff
+            summary: Сначала сотрудники магазина
+      tags:
+      - Информация о пользователях
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/v1/users/me/:
+    get:
+      operationId: Получить информацию о аккаунте
+      description: Позволяет получать информацию о авторизованном пользователе
+      tags:
+      - Информация о пользователях
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registration'
+          description: ''
+  /api/v1/users/me/admin/:
+    post:
+      operationId: Проверка правильности ввода admin code
+      description: Вход в админ-панель
+      parameters:
+      - in: query
+        name: code
+        schema:
+          type: string
+        examples:
+          ПравильныйФорматКода№1:
+            value: 666-666
+            summary: Правильный формат кода №1
+          ПравильныйФорматКода№2:
+            value: '666666'
+            summary: Правильный формат кода №2
+      tags:
+      - Информация о пользователях
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+          description: ''
+components:
+  schemas:
+    Catalog:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 127
+          minLength: 8
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+    Category:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 127
+          minLength: 8
+        category:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+    Feature:
+      type: object
+      properties:
+        display_name:
+          type: string
+        unit:
+          type: string
+        name:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        values:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        many:
+          type: boolean
+        required:
+          type: boolean
+      required:
+      - display_name
+      - required
+      - unit
+      - values
+    FullInfoProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+          default: 'False'
+          pattern: ^[-a-zA-Z0-9_]+$
+        price:
+          type: integer
+          minimum: 1
+        count:
+          type: integer
+          minimum: 0
+        visible:
+          type: boolean
+          default: false
+        owner:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        category:
+          type: integer
+        views:
+          type: array
+          items: {}
+          default: []
+        likes:
+          type: array
+          items: {}
+          default: []
+        features:
+          type: array
+          items: {}
+        article:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        discount:
+          type: integer
+          default: 0
+      required:
+      - count
+      - created
+      - description
+      - name
+      - owner
+      - price
+      - updated
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        maintainer:
+          type: string
+        contributors:
+          type: array
+          items: {}
+          writeOnly: true
+        logo:
+          type: string
+          format: uri
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        verified:
+          type: boolean
+          default: false
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        update_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - contributors
+      - created_at
+      - description
+      - id
+      - logo
+      - name
+      - update_at
+    PaginatedCatalogList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Catalog'
+    PaginatedCategoryList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PaginatedFeatureList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+    PaginatedOrganizationList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+    PaginatedSmallInfoProductList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmallInfoProduct'
+    PaginatedUserList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedCatalog:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 127
+          minLength: 8
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+    PatchedCategory:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 127
+          minLength: 8
+        category:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+    PatchedFeature:
+      type: object
+      properties:
+        display_name:
+          type: string
+        unit:
+          type: string
+        name:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        values:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        many:
+          type: boolean
+        required:
+          type: boolean
+    PatchedFullInfoProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+          default: 'False'
+          pattern: ^[-a-zA-Z0-9_]+$
+        price:
+          type: integer
+          minimum: 1
+        count:
+          type: integer
+          minimum: 0
+        visible:
+          type: boolean
+          default: false
+        owner:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        category:
+          type: integer
+        views:
+          type: array
+          items: {}
+          default: []
+        likes:
+          type: array
+          items: {}
+          default: []
+        features:
+          type: array
+          items: {}
+        article:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        discount:
+          type: integer
+          default: 0
+    PatchedOrganization:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        maintainer:
+          type: string
+        contributors:
+          type: array
+          items: {}
+          writeOnly: true
+        logo:
+          type: string
+          format: uri
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        verified:
+          type: boolean
+          default: false
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        update_at:
+          type: string
+          format: date-time
+          readOnly: true
+    Registration:
+      type: object
+      properties:
+        username:
+          type: string
+          pattern: ^[a-zA-Z0-9_\-]{3,16}$
+        password:
+          type: string
+          writeOnly: true
+          pattern: ^.*(?=.{8,32})(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#$%@&?\"]).*$
+          maxLength: 128
+          minLength: 8
+        double_password:
+          type: string
+          writeOnly: true
+          pattern: ^.*(?=.{8,32})(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#$%@&?\"]).*$
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+          minLength: 3
+        last_name:
+          type: string
+          minLength: 3
+        middle_name:
+          type: string
+          minLength: 3
+        is_staff:
+          type: boolean
+          readOnly: true
+      required:
+      - double_password
+      - email
+      - first_name
+      - is_staff
+      - last_name
+      - password
+      - username
+    Response:
+      type: object
+      properties:
+        access:
+          type: boolean
+      required:
+      - access
+    SmallInfoProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        visible:
+          type: boolean
+        article:
+          type: integer
+        views:
+          type: array
+          items: {}
+        likes:
+          type: array
+          items: {}
+        owner:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - article
+      - description
+      - likes
+      - name
+      - owner
+      - slug
+      - views
+      - visible
+    Token:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        middle_name:
+          type: string
+          maxLength: 48
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+      required:
+      - id
+      - middle_name
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
