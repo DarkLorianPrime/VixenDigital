@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv('SECURITY_TOKEN') or 1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["backend", "127.0.0.1"]
 
 # Application definition
 
@@ -26,17 +26,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'catalogs',
-    'authorization',
-    'products',
     'rest_framework',
-    'django_minio_backend'
+    'apps.catalogs',
+    'apps.authorization',
+    'apps.products',
+    'django_minio_backend',
+    "drf_spectacular"
 ]
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=15),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -51,10 +54,21 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication'
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': "rest_framework.pagination.PageNumberPagination",
+    'PAGE_SIZE': 5
 }
 
 ROOT_URLCONF = 'core.urls'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'DigitalVixen',
+    'DESCRIPTION': 'DigitalVixen - не просто магазин бытовой техники.',
+    'VERSION': '1.5.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]'
+}
 
 TEMPLATES = [
     {
@@ -132,8 +146,8 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER")
 MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD")
 MINIO_PRIVATE_BUCKETS = ["private-bucket"]
 MINIO_PUBLIC_BUCKETS = ["public-bucket"]
-MINIO_HOST = os.getenv("MINIO_ROOT_HOST")
-MINIO_PORT = os.getenv("MINIO_ROOT_PORT")
+MINIO_HOST = os.getenv("MINIO_ROOT_HOST", "minio")
+MINIO_PORT = os.getenv("MINIO_ROOT_PORT", 9000)
 MINIO_ENDPOINT = f"{MINIO_HOST}:{MINIO_PORT}"
 MINIO_EXTERNAL_ENDPOINT = "127.0.0.1:9000"
 MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False

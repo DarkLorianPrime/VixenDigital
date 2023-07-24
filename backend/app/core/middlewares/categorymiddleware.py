@@ -1,12 +1,10 @@
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseNotFound, HttpResponse
+from django.http import HttpResponseNotFound, HttpResponseForbidden
 from django.urls import resolve
-from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
 
-from catalogs.repositories import CategoryRepository
+from core.middlewares.service import Service
 
-service = CategoryRepository()
+service = Service()
 
 
 class CategoryMiddleware:
