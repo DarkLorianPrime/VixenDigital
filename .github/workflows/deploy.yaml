@@ -21,7 +21,7 @@
           run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
         - name: Deploy with rsync
-          run: rsync -avz . root@${{ secrets.SSH_HOST }}:/home/digitalvixen
+          run: rsync -avz . -e "ssh -i $HOME/.ssh/id_dark" root@${{ secrets.SSH_HOST }}:/home/digitalvixen
 
         - name: Run script
           uses: appleboy/ssh-action@master
