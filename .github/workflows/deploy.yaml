@@ -11,15 +11,15 @@
           with:
             ref: dev
 
-        - name: Adding Known Hosts
-          run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
         - name: SSH-KEY
           uses: shimataro/ssh-key-action@v2
           with:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             name: id_rsa
-            known_hosts: ~/.ssh/known_hosts
+            known_hosts: unnecessary
+
+        - name: Adding Known Hosts
+          run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
         - name: Deploy with rsync
           run: rsync -avz . -e "ssh -i $HOME/.ssh/id_rsa" root@${{ secrets.SSH_HOST }}:/home/digitalvixen
