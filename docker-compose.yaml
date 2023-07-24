@@ -23,6 +23,13 @@ x-rabbitmq-environment: &x-rabbitmq-environment
   RABBITMQ_PASSWORD: ${RABBIT_PASSWORD}
 
 services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf:ro"
+    ports:
+      - "81:80"
+
   database:
     image: postgres:alpine
     restart: always
@@ -38,16 +45,11 @@ services:
       - miniodata:/data
     environment:
       <<: *x-minio-environment
-    ports:
-      - "9001:9001"
-      - "9000:9000"
     command: server /data --console-address ":9001"
 
   elk:
     image: elasticsearch:8.8.1
     restart: always
-    ports:
-      - '9200:9200'
     volumes:
       - esdata:/usr/share/elasticsearch/data
     environment:
@@ -60,8 +62,6 @@ services:
     restart: always
     depends_on:
       - elk
-    ports:
-      - "5601:5601"
     volumes:
       - kibanadata:/usr/share/kibana/config/
     environment:
@@ -77,24 +77,20 @@ services:
       <<: *x-rabbitmq-environment
 
   backend:
-    build:
-      context: backend
-      args:
-        TEST: ${TEST}
+    build: backend
     restart: always
     depends_on:
       - database
       - elk
       - minio
-    ports:
-      - "8000:8000"
+      - rabbitmq
     volumes:
       - "./backend/app/:/application"
     environment:
       <<: [ *x-postgres-environment, *x-elastic-environment, *x-minio-environment ]
       SECURITY_TOKEN: ${SECURITY_TOKEN}
       PYTHONUNBUFFERED: 1
-      TEST: ${TEST}
+
 volumes:
   pgdata:
   esdata:
