@@ -152,7 +152,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-# default gitignore is poop
+# default gitignore is poop, boop
 # PyCharm
 #  default gitignore - is fucking poop
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
