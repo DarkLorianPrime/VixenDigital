@@ -14,7 +14,7 @@ class Notifications(models.Model):
 
 
 class User(AbstractUser):
-    middle_name = models.CharField(max_length=48)
+    middle_name = models.CharField(max_length=48, null=True)
     notifications = models.ManyToManyField("Notifications")
     cart = models.ManyToManyField("products.CartItem")
     favourite = models.ManyToManyField("products.FavouriteItem")

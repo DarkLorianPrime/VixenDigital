@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, SlugField, IntegerField, BooleanField, ListField, DateTimeField
 from rest_framework.serializers import Serializer
 
-from apps.catalogs.repositories import OrganizationRepository
+from apps.organizations.repositories import OrganizationRepository
 from core.slugifer import slugify
 from apps.products.models import Feature
 from apps.products.repositories import ProductRepository, FeatureRepository

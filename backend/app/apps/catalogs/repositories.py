@@ -1,8 +1,6 @@
-from django.db.models import QuerySet, Q
 from rest_framework.exceptions import ValidationError
 
-from apps.authorization.models import User
-from apps.catalogs.models import Category, Organization
+from apps.catalogs.models import Category
 
 
 class CategoryRepository:
@@ -29,29 +27,3 @@ class CategoryRepository:
             raise ValidationError('already exists', code=409)
 
         return False
-
-
-class OrganizationRepository:
-    def __init__(self):
-        self.model = Organization
-
-    def is_organization_exists(self, organization_name: str):
-        return self.model.objects.filter(name=organization_name).exists()
-
-    def get_maintainer(self, user: User) -> User:
-        return self.model.objects.filter(Q(maintainer=user) | Q(contributors=user)).first().maintainer
-
-    def organization_logo_delete(self, instance: Organization) -> None:
-        instance.logo.delete()
-
-    def get_contributors(self, contributors_list: list) -> QuerySet:
-        return User.objects.filter(id__in=contributors_list).all()
-
-    def is_exist_organization(self, name: str) -> str:
-        if self.is_organization_exists(name):
-            raise ValidationError('already exists', code=409)
-
-        return name
-
-    def get_organization(self, *args, **kwargs) -> Organization:
-        return self.model.objects.filter(*args, **kwargs).first()

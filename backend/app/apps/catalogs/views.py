@@ -1,12 +1,12 @@
+from typing import List
+
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.catalogs.models import Organization
-from apps.catalogs.serializers import CatalogSerializer, CategorySerializer, OrganizationSerializer
+from apps.catalogs.serializers import CatalogSerializer, CategorySerializer
 from apps.catalogs.repositories import CategoryRepository
-from core.permissions.permissions import ReadOnly, IsMaintainer, IsContributor, IsManager
+from core.permissions.permissions import ReadOnly, IsManager
 
 service = CategoryRepository()
 
@@ -14,7 +14,7 @@ service = CategoryRepository()
 class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     lookup_field = "slug"
-    permission_classes = [IsManager | ReadOnly]
+    permission_classes = [ReadOnly | IsManager]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -22,7 +22,7 @@ class CategoryViewSet(ModelViewSet):
         return context
 
     def get_queryset(self):
-        return self.request.category.categories
+        return self.request.category.categories.all()
 
     def create(self, request, *args, **kwargs):
         values = request.data
@@ -39,17 +39,11 @@ class CategoryViewSet(ModelViewSet):
 class CatalogViewSet(ModelViewSet):
     serializer_class = CatalogSerializer
     lookup_field = "slug"
-    permission_classes = [IsManager | ReadOnly]
+    permission_classes = [ReadOnly | IsManager]
 
     def get_queryset(self):
         return service.get_all_catalogs()
 
-
-class OrganizationViewSet(ModelViewSet):
-    lookup_field = "slug"
-    permission_classes = [IsManager | IsContributor | IsMaintainer | ReadOnly]
-    serializer_class = OrganizationSerializer
-    queryset = Organization.objects.all()
 
 # class SearchViewset(ViewSet):
 #     def get(self, request, catalog, category):

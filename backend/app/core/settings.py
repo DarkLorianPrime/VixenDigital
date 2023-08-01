@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'apps.catalogs',
     'apps.authorization',
     'apps.products',
+    'apps.organizations',
     'django_minio_backend',
     "drf_spectacular"
 ]
@@ -149,6 +150,7 @@ MINIO_PUBLIC_BUCKETS = ["public-bucket"]
 MINIO_HOST = os.getenv("MINIO_ROOT_HOST", "minio")
 MINIO_PORT = os.getenv("MINIO_ROOT_PORT", 9000)
 MINIO_ENDPOINT = f"{MINIO_HOST}:{MINIO_PORT}"
-MINIO_EXTERNAL_ENDPOINT = "127.0.0.1:9000"
+MINIO_EXTERNAL_ENDPOINT = "s3.darklorian.local"
+
 MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
 MINIO_USE_HTTPS = False

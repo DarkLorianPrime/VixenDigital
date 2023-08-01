@@ -1,4 +1,4 @@
-from apps.catalogs.models import Organization
+from apps.organizations.models import Organization
 
 
 class Service:

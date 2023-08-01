@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.catalogs.repositories import OrganizationRepository
+from apps.organizations.repositories import OrganizationRepository
 from core.permissions.permissions import ReadOnly, IsMaintainer, IsContributor
 from apps.products.serializers import FullInfoProductSerializer, FeatureSerializer, SmallInfoProductSerializer
 from apps.products.repositories import ProductRepository, FeatureRepository

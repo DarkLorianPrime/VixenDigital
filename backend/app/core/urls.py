@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/", include([
         path("v1/", include([
             path("", include("apps.authorization.urls")),
+            path("brand/", include("apps.organizations.urls")),
             path("catalog/", include([
                 path("", include("apps.catalogs.urls")),
                 re_path("(?P<catalog>[0-9A-z-_]{1, 128})/", include([
