@@ -17,10 +17,7 @@
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             name: id_rsa
             known_hosts: unnecessary
-#        - name: CREATE-PRIVATE
-#          run: |
-#            touch ~/.ssh/id_dark
-#            ~/.ssh/id_dark << ${{ secrets.SSH_PRIVATE_KEY }}
+
         - name: Adding Known Hosts
           run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
