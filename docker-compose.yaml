@@ -97,6 +97,7 @@ services:
       <<: [ *x-postgres-environment, *x-elastic-environment, *x-minio-environment ]
       SECURITY_TOKEN: ${SECURITY_TOKEN}
       PYTHONUNBUFFERED: 1
+      DEBUG: ${DEBUG}
 
 volumes:
   pgdata:

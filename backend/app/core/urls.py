@@ -12,6 +12,7 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    api/v1/
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
@@ -34,7 +35,7 @@ urlpatterns = [
         path("schema/", include([
             path("", SpectacularAPIView.as_view(), name="schema"),
             path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc-ui"),
-            path('swagger/', SpectacularSwaggerView.as_view(url_name="schema"))
+            path('gswagger/', SpectacularSwaggerView.as_view(url_name="schema"))
         ]))
     ])),
 ]
