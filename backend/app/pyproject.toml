@@ -18,6 +18,7 @@ django-minio-backend = "^3.5.0"
 pillow = "^10.0.0"
 celery = "^5.3.1"
 drf-spectacular = "^0.26.3"
+django-cors-headers = "^4.2.0"
 
 
 [build-system]

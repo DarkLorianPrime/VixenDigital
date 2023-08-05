@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     'apps.products',
     'apps.organizations',
     'django_minio_backend',
-    "drf_spectacular"
+    "drf_spectacular",
+    "corsheaders"
 ]
 
 SIMPLE_JWT = {
@@ -44,12 +45,17 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middlewares.categorymiddleware.CategoryMiddleware'
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
 ]
 
 REST_FRAMEWORK = {
