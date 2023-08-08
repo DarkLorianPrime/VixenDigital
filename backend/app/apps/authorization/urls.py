@@ -6,8 +6,8 @@ from apps.authorization.views import RegistrationViewSet, UsersViewSet, ForceUse
 urlpatterns = [
     path("token/", include([
         path("", AccessTokenHandler.as_view(), name='token_obtain_pair'),
-        path("refresh", RefreshTokenHandler.as_view(), name='token_refresh'),
-        path("create", RegistrationViewSet.as_view({'post': 'create'}, name="token_create"))
+        path("refresh/", RefreshTokenHandler.as_view(), name='token_refresh'),
+        path("create/", RegistrationViewSet.as_view({'post': 'create'}, name="token_create"))
     ]), name="account_credentials"),
     path("account/", include([
             path("", UsersViewSet.as_view({"get": "get_self"}), name="get_info_about_self"),
